@@ -1,4 +1,4 @@
-package com.pardal.app.entities;
+package com.pardal.app.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -9,16 +9,16 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"Tags\"")
-public class Tag {
+@Table(name = "\"Categories\"")
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"TagId\"", nullable = false)
+    @Column(name = "\"CategoryId\"", nullable = false)
     private Integer id;
 
-    @Size(max = 60)
+    @Size(max = 100)
     @NotNull
-    @Column(name = "\"Name\"", nullable = false, length = 60)
+    @Column(name = "\"Name\"", nullable = false, length = 100)
     private String name;
 
 }

@@ -1,4 +1,4 @@
-package com.pardal.app.entities;
+package com.pardal.app.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

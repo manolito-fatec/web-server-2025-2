@@ -1,4 +1,4 @@
-package com.pardal.app.entities;
+package com.pardal.app.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +12,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "\"Tickets\"")
-public class Ticket {
+public class Tickets {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "\"TicketId\"", nullable = false)

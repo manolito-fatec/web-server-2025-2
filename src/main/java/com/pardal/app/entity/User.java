@@ -1,4 +1,4 @@
-package com.pardal.app.entities;
+package com.pardal.app.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -6,17 +6,21 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "\"Agents\"")
-public class Agent {
+@Table(name = "\"Users\"")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"AgentId\"", nullable = false)
+    @Column(name = "\"UserId\"", nullable = false)
     private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "\"CompanyId\"")
+    private Company company;
 
     @Size(max = 120)
     @NotNull
@@ -31,14 +35,14 @@ public class Agent {
     @Column(name = "\"Phone\"", length = 40)
     private String phone;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "\"DepartmentId\"")
-    private Department department;
+    @Size(max = 32)
+    @Column(name = "\"CPF\"", length = 32)
+    private String cpf;
 
-    @Column(name = "\"IsActive\"")
-    private Boolean isActive;
+    @Column(name = "\"CreatedAt\"")
+    private Instant createdAt;
 
-    @Column(name = "\"HiredAt\"")
-    private LocalDate hiredAt;
+    @Column(name = "\"IsVIP\"")
+    private Boolean isVIP;
 
 }

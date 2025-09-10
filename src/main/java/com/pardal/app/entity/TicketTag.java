@@ -1,4 +1,4 @@
-package com.pardal.app.entities;
+package com.pardal.app.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -15,7 +15,7 @@ public class TicketTag {
     @MapsId("ticketId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "\"TicketId\"", nullable = false)
-    private Ticket ticket;
+    private Tickets tickets;
 
     @MapsId("tagId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

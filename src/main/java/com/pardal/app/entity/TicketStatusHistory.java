@@ -1,4 +1,4 @@
-package com.pardal.app.entities;
+package com.pardal.app.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +20,7 @@ public class TicketStatusHistory {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "\"TicketId\"", nullable = false)
-    private Ticket ticket;
+    private Tickets tickets;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "\"FromStatusId\"")
