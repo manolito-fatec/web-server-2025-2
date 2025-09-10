@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -77,12 +78,12 @@ public class Tickets {
     private String device;
 
     @Column(name = "\"CreatedAt\"")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "\"FirstResponseAt\"")
-    private Instant firstResponseAt;
+    private LocalDateTime firstResponseAt;
 
     @Column(name = "\"ClosedAt\"")
-    private Instant closedAt;
+    private LocalDateTime closedAt;
 
 }
