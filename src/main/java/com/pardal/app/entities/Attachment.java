@@ -1,0 +1,46 @@
+package com.pardal.app.entities;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.Instant;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "\"Attachments\"")
+public class Attachment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "\"AttachmentId\"", nullable = false)
+    private Long id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "\"TicketId\"", nullable = false)
+    private Ticket ticket;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "\"FileName\"", nullable = false)
+    private String fileName;
+
+    @Size(max = 100)
+    @Column(name = "\"MimeType\"", length = 100)
+    private String mimeType;
+
+    @Column(name = "\"SizeBytes\"")
+    private Long sizeBytes;
+
+    @Size(max = 400)
+    @NotNull
+    @Column(name = "\"StoragePath\"", nullable = false, length = 400)
+    private String storagePath;
+
+    @Column(name = "\"UploadedAt\"")
+    private Instant uploadedAt;
+
+}
