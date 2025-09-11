@@ -25,10 +25,18 @@ public class TicketsServiceImpl implements TicketsService {
 
         Specification<Tickets> spec = Specification.where(null);
 
-        productId.ifPresent(pId -> spec.and(TicketsSpecifications.hasProductId(pId)));
-        clientId.ifPresent(cId -> spec.and(TicketsSpecifications.hasClientId(cId)));
-        dateMin.ifPresent(dMin -> spec.and(TicketsSpecifications.hasDateAfter(dMin)));
-        dateMax.ifPresent(dMax -> spec.and(TicketsSpecifications.hasDateBefore(dMax)));
+        if (productId.isPresent()) {
+            spec = spec.and(TicketSpecifications.hasProductId(productId.get()));
+        }
+        if (clientId.isPresent()) {
+            spec = spec.and(TicketSpecifications.hasClientId(clientId.get()));
+        }
+        if (dateMin.isPresent()) {
+            spec = spec.and(TicketSpecifications.hasDateAfter(dateMin.get()));
+        }
+        if (dateMax.isPresent()) {
+            spec = spec.and(TicketSpecifications.hasDateBefore(dateMax.get()));
+        }
 
         long count = ticketsRepository.count(spec);
 
