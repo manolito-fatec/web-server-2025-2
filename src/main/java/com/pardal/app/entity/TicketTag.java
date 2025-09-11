@@ -7,19 +7,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"TicketTags\"")
+@Table(name = "ticket_tags")
 public class TicketTag {
     @EmbeddedId
     private TicketTagId id;
 
     @MapsId("ticketId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "\"TicketId\"", nullable = false)
+    @JoinColumn(name = "ticket_id", nullable = false)
     private Tickets tickets;
 
     @MapsId("tagId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "\"TagId\"", nullable = false)
+    @JoinColumn(name = "tag_id", nullable = false)
     private Tag tag;
 
 }

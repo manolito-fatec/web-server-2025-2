@@ -9,22 +9,22 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"SLA_Plans\"")
+@Table(name = "sla_plans")
 public class SlaPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"SLAPlanId\"", nullable = false)
+    @Column(name = "sla_plan_id", nullable = false)
     private Integer id;
 
     @Size(max = 80)
     @NotNull
-    @Column(name = "\"Name\"", nullable = false, length = 80)
+    @Column(name = "name", nullable = false, length = 80)
     private String name;
 
-    @Column(name = "\"FirstResponseMins\"")
+    @Column(name = "first_response_mins")
     private Integer firstResponseMins;
 
-    @Column(name = "\"ResolutionMins\"")
+    @Column(name = "resolution_mins")
     private Integer resolutionMins;
 
 }

@@ -9,21 +9,21 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"Subcategories\"")
+@Table(name = "subcategories")
 public class Subcategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"SubcategoryId\"", nullable = false)
+    @Column(name = "subcategory_id", nullable = false)
     private Integer id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "\"CategoryId\"", nullable = false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @Size(max = 100)
     @NotNull
-    @Column(name = "\"Name\"", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
 }

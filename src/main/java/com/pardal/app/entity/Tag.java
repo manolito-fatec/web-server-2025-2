@@ -9,16 +9,16 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"Tags\"")
+@Table(name = "tags")
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"TagId\"", nullable = false)
+    @Column(name = "tag_id", nullable = false)
     private Integer id;
 
     @Size(max = 60)
     @NotNull
-    @Column(name = "\"Name\"", nullable = false, length = 60)
+    @Column(name = "name", nullable = false, length = 60)
     private String name;
 
 }
