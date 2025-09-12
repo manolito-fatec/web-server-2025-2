@@ -1,7 +1,10 @@
 package com.pardal.app.repository;
 
 import com.pardal.app.entity.Tickets;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-public interface TicketRepository extends Repository<Tickets, Long> {
+@Repository
+public interface TicketRepository extends JpaRepository<Tickets, Long>, JpaSpecificationExecutor<Tickets> {
 }

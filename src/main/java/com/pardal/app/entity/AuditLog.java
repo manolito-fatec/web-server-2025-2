@@ -11,35 +11,35 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"AuditLogs\"")
+@Table(name = "audit_logs")
 public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"AuditId\"", nullable = false)
+    @Column(name = "audit_id", nullable = false)
     private Long id;
 
     @Size(max = 50)
     @NotNull
-    @Column(name = "\"EntityType\"", nullable = false, length = 50)
+    @Column(name = "entity_type", nullable = false, length = 50)
     private String entityType;
 
     @NotNull
-    @Column(name = "\"EntityId\"", nullable = false)
+    @Column(name = "entity_id", nullable = false)
     private Long entityId;
 
     @Size(max = 20)
     @NotNull
-    @Column(name = "\"Operation\"", nullable = false, length = 20)
+    @Column(name = "operation", nullable = false, length = 20)
     private String operation;
 
     @Size(max = 120)
-    @Column(name = "\"PerformedBy\"", length = 120)
+    @Column(name = "performed_by", length = 120)
     private String performedBy;
 
-    @Column(name = "\"PerformedAt\"")
+    @Column(name = "performed_at")
     private Instant performedAt;
 
-    @Column(name = "\"DetailsJson\"", length = Integer.MAX_VALUE)
+    @Column(name = "details_json", length = Integer.MAX_VALUE)
     private String detailsJson;
 
 }

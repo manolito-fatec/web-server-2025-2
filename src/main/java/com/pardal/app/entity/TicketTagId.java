@@ -14,13 +14,13 @@ import java.util.Objects;
 @Setter
 @Embeddable
 public class TicketTagId implements Serializable {
-    private static final long serialVersionUID = 5195972998153983235L;
+    private static final long serialVersionUID = -6891788297120661502L;
     @NotNull
-    @Column(name = "\"TicketId\"", nullable = false)
+    @Column(name = "ticket_id", nullable = false)
     private Long ticketId;
 
     @NotNull
-    @Column(name = "\"TagId\"", nullable = false)
+    @Column(name = "tag_id", nullable = false)
     private Integer tagId;
 
     @Override

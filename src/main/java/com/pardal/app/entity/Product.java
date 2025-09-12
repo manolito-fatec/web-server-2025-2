@@ -11,30 +11,30 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"Products\"")
+@Table(name = "products")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"ProductId\"", nullable = false)
+    @Column(name = "product_id", nullable = false)
     private Integer id;
 
     @Size(max = 150)
     @NotNull
-    @Column(name = "\"Name\"", nullable = false, length = 150)
+    @Column(name = "name", nullable = false, length = 150)
     private String name;
 
     @Size(max = 50)
-    @Column(name = "\"Code\"", length = 50)
+    @Column(name = "code", length = 50)
     private String code;
 
     @Size(max = 500)
-    @Column(name = "\"Description\"", length = 500)
+    @Column(name = "description", length = 500)
     private String description;
 
-    @Column(name = "\"IsActive\"")
+    @Column(name = "is_active")
     private Boolean isActive;
 
-    @Column(name = "\"CreatedAt\"")
+    @Column(name = "created_at")
     private Instant createdAt;
 
 }
