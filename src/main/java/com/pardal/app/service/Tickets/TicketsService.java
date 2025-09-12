@@ -5,5 +5,5 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface TicketsService {
-    Integer getTicketsCount(Optional<Integer> productId, Optional<Integer> clientId, Optional<LocalDateTime> dateMin, Optional<LocalDateTime> dateMax);
+    long getTicketsCount(Optional<Integer> productId, Optional<Integer> clientId, Optional<LocalDateTime> dateMin, Optional<LocalDateTime> dateMax);
 }

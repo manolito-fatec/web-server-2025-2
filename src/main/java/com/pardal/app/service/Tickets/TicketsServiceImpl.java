@@ -18,7 +18,7 @@ public class TicketsServiceImpl implements TicketsService {
 
     @Transactional
     @Override
-    public Integer getTicketsCount(Optional<Integer> productId,
+    public long getTicketsCount(Optional<Integer> productId,
                                    Optional<Integer> clientId,
                                    Optional<LocalDateTime> dateMin,
                                    Optional<LocalDateTime> dateMax) {
@@ -38,8 +38,6 @@ public class TicketsServiceImpl implements TicketsService {
             spec = spec.and(TicketSpecifications.hasDateBefore(dateMax.get()));
         }
 
-        long count = ticketsRepository.count(spec);
-
-        return (int) count;
+        return ticketsRepository.count(spec);
     }
 }
