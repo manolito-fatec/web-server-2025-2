@@ -1,14 +1,14 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.service.Tickets.TicketsService;
+import com.pardal.app.service.Filter.FilterService;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
@@ -16,23 +16,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FiltersController {
 
-    private final TicketsService ticketsService;
+    private final FilterService filterService;
 
     @GetMapping()
-    public ResponseEntity<?> getNumberOfTickets(
-            @RequestParam("productId") Optional<Integer> productId,
-            @RequestParam("clientId") Optional<Integer> clientId,
-            @RequestParam("dateMin") Optional<LocalDateTime> dateMin,
-            @RequestParam("dateMax") Optional<LocalDateTime> dateMax,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "50") Integer limit){
+    public ResponseEntity<?> getFilterData(
+            @Parameter(description = "Numero da pagina (1-based)", example = "1")
+            @RequestParam(defaultValue = "1") int page,
+
+            @Parameter(description = "Numero de itens por pagina (default = 10)", example = "10")
+            @RequestParam(defaultValue = "10") int size
+    ){
         try {
-            return ResponseEntity.ok().body(ticketsService.getTicketsCount(
-                    productId,
-                    clientId,
-                    dateMin,
-                    dateMax
-                    )
+            return ResponseEntity.ok().body(filterService.getFilterData(page, size)
             );
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
