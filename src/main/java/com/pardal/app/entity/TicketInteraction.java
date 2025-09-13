@@ -11,38 +11,38 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"TicketInteractions\"")
+@Table(name = "ticket_interactions")
 public class TicketInteraction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"InteractionId\"", nullable = false)
+    @Column(name = "interaction_id", nullable = false)
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "\"TicketId\"", nullable = false)
+    @JoinColumn(name = "ticket_id", nullable = false)
     private Tickets tickets;
 
     @NotNull
-    @Column(name = "\"AuthorType\"", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "author_type", nullable = false, length = Integer.MAX_VALUE)
     private String authorType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "\"AuthorUserId\"")
+    @JoinColumn(name = "author_user_id")
     private User authorUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "\"AuthorAgentId\"")
+    @JoinColumn(name = "author_agent_id")
     private Agent authorAgent;
 
     @NotNull
-    @Column(name = "\"Message\"", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "message", nullable = false, length = Integer.MAX_VALUE)
     private String message;
 
-    @Column(name = "\"IsPublic\"")
+    @Column(name = "is_public")
     private Boolean isPublic;
 
-    @Column(name = "\"CreatedAt\"")
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @Size(max = 50)

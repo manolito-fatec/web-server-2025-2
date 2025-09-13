@@ -1,9 +1,9 @@
 package com.pardal.app.service.Tickets;
 
-import com.pardal.app.entity.Tickets;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface TicketsService {
-    List<Tickets> getTicketsByProductId(Integer productId);
+    long getTicketsCount(Optional<Integer> productId, Optional<Integer> clientId, Optional<LocalDateTime> dateMin, Optional<LocalDateTime> dateMax);
 }

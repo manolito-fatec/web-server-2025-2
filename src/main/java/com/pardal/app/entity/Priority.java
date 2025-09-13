@@ -9,19 +9,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"Priorities\"")
+@Table(name = "priorities")
 public class Priority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "\"PriorityId\"", nullable = false)
+    @Column(name = "priority_id", nullable = false)
     private Integer id;
 
     @Size(max = 50)
     @NotNull
-    @Column(name = "\"Name\"", nullable = false, length = 50)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Column(name = "\"Weight\"")
+    @Column(name = "weight")
     private Integer weight;
 
 }

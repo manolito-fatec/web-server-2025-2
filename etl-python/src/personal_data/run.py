@@ -28,11 +28,11 @@ MONGO_DATABASE = os.getenv("MONGO_DATABASE")
 MONGO_COLLECTION = os.getenv("MONGO_COLLECTION")
 
 TABLES_TO_ANONYMIZE = [
-    ("Agents", ["FullName", "Email", "Phone"], "AgentId"),
-    ("AuditLogs", ["PerformedBy"], "AuditId"),
-    ("TicketInteractions", ["Message"], "InteractionId"),
-    ("Tickets", ["Title", "Description"], "TicketId"),
-    ("Users", ["FullName", "Email", "Phone", "CPF"], "UserId")
+    ("agents", ["full_name", "email", "phone"], "agent_id"),
+    ("audit_logs", ["performed_by"], "audit_id"),
+    ("ticket_interactions", ["message"], "interaction_id"),
+    ("tickets", ["title", "description"], "ticket_id"),
+    ("users", ["full_name", "email", "phone", "cpf"], "user_id")
 ]
 BATCH_SIZE = 500
 
