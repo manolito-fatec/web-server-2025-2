@@ -3,26 +3,25 @@ Created on 09/10/2025 00:50
 
 @author: otavio-calderan
 """
+
 import sys
 import time
+import logging
 from config.setup_mongo import setup_audit_logs
+from etl.pipeline import AnonymizationPipeline
 
-from personal_data.run import run_anonymization_etl
+log = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    print("Iniciando container de ETL...")
 
-    print("\nVerificando e configurando a infraestrutura do MongoDB...")
     try:
         setup_audit_logs()
-        print("Infraestrutura do MongoDB configurada com sucesso.")
     except Exception as e:
-        print(f"ERRO CRÍTICO: Falha ao configurar o MongoDB. O ETL não será executado. Erro: {e}")
+        log.error(f"CRITICAL ERROR: Failed to configure MongoDB. The ETL will not be executed. Error: {e}")
         sys.exit(1)
 
-    print("\nIniciando script de anonimização de dados legados (LGPD)...")
-    print("AVISO: Este script fará alterações permanentes no banco de dados.")
+    log.warning("WARNING: This script will make permanent changes to the database.")
     time.sleep(3)
-    run_anonymization_etl()
 
-    print("\nTodos os processos de ETL foram concluídos.")
+    pipeline = AnonymizationPipeline()
+    pipeline.run()
