@@ -1,5 +1,7 @@
 package com.pardal.app.service.Metrics;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +58,13 @@ public class MetricsServiceImpl implements MetricsService
         Page<Product> productPage = productRepository.findAll(pageableRequest);
 
         return new FilterDataDto(productPage, companyPage);
+    }
+
+    @Override
+    public String getAllChartData ( Integer pProductId, Integer pCustomerId, LocalDateTime pFromDate,
+            LocalDateTime pToDate )
+    {
+        return null;
     }
 
 }

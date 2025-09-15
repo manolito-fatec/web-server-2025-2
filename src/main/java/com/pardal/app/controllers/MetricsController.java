@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -38,6 +39,44 @@ public class MetricsController {
     ){
         try {
             return ResponseEntity.ok().body(metricsService.getFilterData(page, size)
+            );
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
+        }
+
+    }
+
+    @Operation(summary = "Busca informações para preenchimento do gráfico", description = "Retorna informações para serem usadas para exibição em forma de gráfico e em cards")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Parâmetros de busca inválidos."),
+            @ApiResponse(responseCode = "404", description = "Recurso não encontrado."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar os dados do gráfico")
+    })
+    @GetMapping()
+    public ResponseEntity<?> getAllChartData(
+            @Parameter(description = "Id do produto", example = "1")
+            @RequestParam
+            Integer pProdcutId,
+
+            @Parameter(description = "Id do cliente", example = "1")
+            @RequestParam
+            Integer pCustomerId,
+
+            @Parameter(description = "Data de inicio", example = "2025-09-15T13:45:30")
+            @RequestParam
+            LocalDateTime pFromDate,
+
+            @Parameter(description = "Data de final", example = "2025-09-15T13:45:30")
+            @RequestParam
+            LocalDateTime pToDate
+    ){
+        try {
+            return ResponseEntity.ok().body(metricsService.getAllChartData(pProdcutId, pCustomerId, pFromDate, pToDate)
             );
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
