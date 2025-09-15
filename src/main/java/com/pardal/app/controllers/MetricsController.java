@@ -1,7 +1,5 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.service.Metrics.MetricsService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.pardal.app.service.metrics.MetricsService;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;

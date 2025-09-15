@@ -1,4 +1,4 @@
-package com.pardal.app.service.Tickets;
+package com.pardal.app.service.tickets;
 
 import com.pardal.app.entity.Tickets;
 import org.springframework.data.jpa.domain.Specification;

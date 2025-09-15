@@ -1,4 +1,4 @@
-package com.pardal.app.service.Metrics;
+package com.pardal.app.service.metrics;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
@@ -23,9 +23,10 @@ import org.springframework.data.domain.Pageable;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;
-import com.pardal.app.entity.Dto.FilterDataDto;
+import com.pardal.app.entity.dto.FilterDataDto;
 import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
+import com.pardal.app.service.metrics.MetricsService;
 
 @ExtendWith(MockitoExtension.class)
 class MetricsServiceImplTest

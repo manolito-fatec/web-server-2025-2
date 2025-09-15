@@ -1,4 +1,4 @@
-package com.pardal.app.service.Metrics;
+package com.pardal.app.service.metrics;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;
-import com.pardal.app.entity.Dto.FilterDataDto;
+import com.pardal.app.entity.dto.ChartDto;
+import com.pardal.app.entity.dto.FilterDataDto;
 import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
 
@@ -61,10 +62,12 @@ public class MetricsServiceImpl implements MetricsService
     }
 
     @Override
-    public String getAllChartData ( Integer pProductId, Integer pCustomerId, LocalDateTime pFromDate,
+    public ChartDto getAllChartData ( Integer pProductId, Integer pCustomerId, LocalDateTime pFromDate,
             LocalDateTime pToDate )
     {
-        return null;
+        ChartDto response = new ChartDto();
+        return response;
     }
+
 
 }
