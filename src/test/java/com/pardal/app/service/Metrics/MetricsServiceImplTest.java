@@ -38,7 +38,7 @@ class MetricsServiceImplTest
     private ProductRepository productRepository;
 
     @InjectMocks
-    private MetricsService metricsSerive;
+    private MetricsService metricsService;
 
     private Page<Company> companyPage;
     private Page<Product> productPage;
@@ -68,7 +68,7 @@ class MetricsServiceImplTest
         when(companyRepository.findAll(pageable)).thenReturn(companyPage);
         when(productRepository.findAll(pageable)).thenReturn(productPage);
 
-        FilterDataDto result = metricsSerive.getFilterData(page, pageSize);
+        FilterDataDto result = metricsService.getFilterData(page, pageSize);
 
         assertNotNull(result);
         assertEquals(companyPage, result.getCompanies());
@@ -86,7 +86,7 @@ class MetricsServiceImplTest
 
         IllegalArgumentException thrown = assertThrows(
                 IllegalArgumentException.class,
-                () -> metricsSerive.getFilterData(invalidPage, pageSize),
+                () -> metricsService.getFilterData(invalidPage, pageSize),
                 "Expected IllegalArgumentException for page < 1, but didn't throw."
         );
 
@@ -102,7 +102,7 @@ class MetricsServiceImplTest
 
         IllegalArgumentException thrown = assertThrows(
                 IllegalArgumentException.class,
-                () -> metricsSerive.getFilterData(page, invalidPageSize),
+                () -> metricsService.getFilterData(page, invalidPageSize),
                 "Expected IllegalArgumentException for pageSize < 1, but didn't throw."
         );
 

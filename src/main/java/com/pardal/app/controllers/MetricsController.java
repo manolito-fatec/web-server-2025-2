@@ -57,7 +57,7 @@ public class MetricsController {
             @ApiResponse(responseCode = "404", description = "Recurso não encontrado."),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar os dados do gráfico")
     })
-    @GetMapping()
+    @GetMapping("/chart")
     public ResponseEntity<?> getAllChartData(
             @Parameter(description = "Id do produto", example = "1")
             @RequestParam
