@@ -1,27 +1,22 @@
-package com.pardal.app.service.Filter;
+package com.pardal.app.service.Metrics;
 
-import com.pardal.app.entity.Company;
-import com.pardal.app.entity.Dto.FilterDataDto;
-import com.pardal.app.entity.Product;
-import com.pardal.app.repository.CompanyRepository;
-import com.pardal.app.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-/**
- * Service for filtering and retrieving company and product data with pagination.
- * <p>
- * This service handles the retrieval of paginated lists of companies and products
- * from their respective repositories and combines them into a single DTO.
- * </p>
- */
+import com.pardal.app.entity.Company;
+import com.pardal.app.entity.Product;
+import com.pardal.app.entity.Dto.FilterDataDto;
+import com.pardal.app.repository.CompanyRepository;
+import com.pardal.app.repository.ProductRepository;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
-public class FilterService {
-
+public class MetricsServiceImpl implements MetricsService
+{
     private final CompanyRepository companyRepository;
     private final ProductRepository productRepository;
 
@@ -32,8 +27,9 @@ public class FilterService {
      * provided page number and size, combining them into a {@link FilterDataDto}.
      * </p>
      *
-     * @param page the page number to retrieve (must be greater than 0)
-     * @param pageSize the number of items per page (must be greater than 0)
+     * @author Cauê
+     * @param pPage the page number to retrieve (must be greater than 0)
+     * @param pPageSize the number of items per page (must be greater than 0)
      * @return a DTO containing paginated company and product lists
      * @throws IllegalArgumentException if the page number or page size is less than 1
      * @see FilterDataDto
@@ -44,20 +40,22 @@ public class FilterService {
      * FilterDataDto filterData = filterService.getFilterData(1, 20);
      * }</pre>
      */
-    public FilterDataDto getFilterData(int page, int pageSize) {
-        if (page < 1) {
+    @Override
+    public FilterDataDto getFilterData ( int pPage, int pPageSize )
+    {
+        if (pPage < 1) {
             throw new IllegalArgumentException("O número da página deve ser maior que 0");
         }
-        if (pageSize < 1) {
+        if (pPageSize < 1) {
             throw new IllegalArgumentException("O tamanho da página deve ser maior que 0");
         }
 
-        Pageable pageableRequest = PageRequest.of(page - 1, pageSize);
+        Pageable pageableRequest = PageRequest.of(pPage - 1, pPageSize);
 
         Page<Company> companyPage = companyRepository.findAll(pageableRequest);
         Page<Product> productPage = productRepository.findAll(pageableRequest);
 
-
         return new FilterDataDto(productPage, companyPage);
     }
+
 }

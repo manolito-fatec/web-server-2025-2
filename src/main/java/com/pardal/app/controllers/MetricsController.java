@@ -1,12 +1,12 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.service.Filter.FilterService;
+import com.pardal.app.service.Metrics.MetricsService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +15,11 @@ import java.util.NoSuchElementException;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping("/filters")
+@RequestMapping("/metrics")
 @RequiredArgsConstructor
-public class FiltersController {
+public class MetricsController {
 
-    private final FilterService filterService;
+    private final MetricsService metricsService;
 
     @Operation(summary = "Busca dados de filtro de forma paginada", description = "Retorna uma lista paginada de dados de filtro com base nos parâmetros 'page' e 'size'.")
     @ApiResponses(value = {
@@ -37,7 +37,7 @@ public class FiltersController {
             @RequestParam(defaultValue = "10") int size
     ){
         try {
-            return ResponseEntity.ok().body(filterService.getFilterData(page, size)
+            return ResponseEntity.ok().body(metricsService.getFilterData(page, size)
             );
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
