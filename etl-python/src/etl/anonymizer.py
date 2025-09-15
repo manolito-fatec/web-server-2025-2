@@ -38,7 +38,7 @@ class Anonymizer:
         found_pii = False
 
         for ent in reversed(doc.ents):
-            if ent.label_ == "PER":
+            if ent.label_ == "PERSON":
                 start, end = ent.start_char, ent.end_char
                 new_text = new_text[:start] + self.ANONYMIZATION_MASK + new_text[end:]
                 found_pii = True
