@@ -2,6 +2,7 @@ package com.pardal.app.service.Tickets;
 
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
+import com.pardal.app.repository.specifications.TicketSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,9 @@ public class TicketsServiceImpl implements TicketsService {
     @Transactional
     @Override
     public long getTicketsCount(Optional<Integer> productId,
-                                   Optional<Integer> clientId,
-                                   Optional<LocalDateTime> dateMin,
-                                   Optional<LocalDateTime> dateMax) {
+                                Optional<Integer> clientId,
+                                Optional<LocalDateTime> dateMin,
+                                Optional<LocalDateTime> dateMax) {
 
         Specification<Tickets> spec = Specification.where(null);
 
@@ -32,10 +33,10 @@ public class TicketsServiceImpl implements TicketsService {
             spec = spec.and(TicketSpecifications.hasClientId(clientId.get()));
         }
         if (dateMin.isPresent()) {
-            spec = spec.and(TicketSpecifications.hasDateAfter(dateMin.get()));
+            spec = spec.and(TicketSpecifications.isCreatedAfter(dateMin.get()));
         }
         if (dateMax.isPresent()) {
-            spec = spec.and(TicketSpecifications.hasDateBefore(dateMax.get()));
+            spec = spec.and(TicketSpecifications.isCreatedBefore(dateMax.get()));
         }
 
         return ticketsRepository.count(spec);
