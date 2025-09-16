@@ -8,8 +8,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -46,5 +48,22 @@ public class TicketsServiceImpl implements TicketsService {
     @Override
     public List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct() {
         return ticketsRepository.getTicketsCountGroupedByProduct();
+    }
+
+    @Override
+    public Double getAverageTicketClosureTimeInHours() {
+        List<Tickets> closedTickets = ticketsRepository.findAllByClosedAtIsNotNull();
+
+        if (closedTickets.isEmpty()) {
+            throw new NoSuchElementException("No tickets found for calculation");
+        }
+
+        long totalDurationInSeconds = closedTickets.stream()
+                .mapToLong(ticket -> Duration.between(ticket.getCreatedAt(), ticket.getClosedAt()).getSeconds())
+                .sum();
+
+        double averageTime = (double) totalDurationInSeconds / closedTickets.size() / 3600.0;
+
+        return Math.round(averageTime * 100.0) / 100.0;
     }
 }

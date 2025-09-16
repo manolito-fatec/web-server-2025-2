@@ -35,4 +35,12 @@ public interface TicketsService {
      * @see TicketsByProductsCountDto
      */
     List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
+    /**
+     * Calculates the average closure time for all closed tickets.
+     * <p>
+     * This method retrieves all tickets that have a closure date, calculates the duration
+     * from creation to closure for each, and then computes the average duration. The result
+     * is returned in hours, rounded to two decimal places.
+     */
+    Double getAverageTicketClosureTimeInHours();
 }
