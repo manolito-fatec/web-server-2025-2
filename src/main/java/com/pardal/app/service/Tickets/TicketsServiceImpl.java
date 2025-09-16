@@ -1,5 +1,6 @@
 package com.pardal.app.service.Tickets;
 
+import com.pardal.app.entity.Dto.TicketsByProductsCountDto;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,5 +41,10 @@ public class TicketsServiceImpl implements TicketsService {
         }
 
         return ticketsRepository.count(spec);
+    }
+
+    @Override
+    public List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct() {
+        return ticketsRepository.getTicketsCountGroupedByProduct();
     }
 }
