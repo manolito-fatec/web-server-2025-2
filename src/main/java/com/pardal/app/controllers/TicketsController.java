@@ -41,4 +41,22 @@ public class TicketsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(runtimeException.getMessage());
         }
     }
+
+    @Operation(summary = "Busca o tempo médio de resolução dos tickets", description = "Retorna o tempo médio em horas para tickets que já foram resolvidos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Tempo médio calculado com sucesso."),
+            @ApiResponse(responseCode = "404", description = "Nenhum ticket resolvido encontrado para calcular o tempo médio."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor.")
+    })
+    @GetMapping("/average-resolution-time")
+    public ResponseEntity<?> getAverageResolutionTime() {
+        try {
+            Double averageHours = ticketsService.getAverageTicketClosureTimeInHours();
+            return ResponseEntity.ok(averageHours);
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(noSuchElementException.getMessage());
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(runtimeException.getMessage());
+        }
+    }
 }
