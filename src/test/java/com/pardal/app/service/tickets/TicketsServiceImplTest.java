@@ -93,7 +93,6 @@ class TicketsServiceImplTest {
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
-        // Act
         long actualCount = ticketsService.getTicketsCount(
                 Optional.of(productId),
                 Optional.empty(),
