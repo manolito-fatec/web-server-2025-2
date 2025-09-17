@@ -1,4 +1,4 @@
-package com.pardal.app.entity.Dto;
+package com.pardal.app.entity.dto;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;

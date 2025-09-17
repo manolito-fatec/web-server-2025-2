@@ -1,4 +1,4 @@
-package com.pardal.app.service.Tickets;
+package com.pardal.app.service.tickets;
 
 
 import java.time.LocalDateTime;
