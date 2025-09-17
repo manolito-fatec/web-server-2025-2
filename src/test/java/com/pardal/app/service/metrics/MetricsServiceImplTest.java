@@ -1,13 +1,16 @@
 package com.pardal.app.service.metrics;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,13 +23,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;
 import com.pardal.app.entity.dto.FilterDataDto;
 import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
+import com.pardal.app.repository.TicketStatusHistoryRepository;
+import com.pardal.app.repository.specification.MetricsSpecifications;
 import com.pardal.app.service.metrics.MetricsService;
+import com.pardal.app.service.tickets.TicketsService;
 
 @ExtendWith(MockitoExtension.class)
 class MetricsServiceImplTest
@@ -38,8 +45,16 @@ class MetricsServiceImplTest
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private TicketsService ticketsService;
+
+    @Mock MetricsSpecifications metricsSpecifications;
+
+    @Mock
+    private TicketStatusHistoryRepository ticketStatusHistoryRepository;
+
     @InjectMocks
-    private MetricsService metricsService;
+    private MetricsServiceImpl metricsService;
 
     private Page<Company> companyPage;
     private Page<Product> productPage;
@@ -111,4 +126,21 @@ class MetricsServiceImplTest
         verifyNoInteractions(companyRepository, productRepository);
     }
 
+    @Test
+    @DisplayName("should return zero when there are no reopened tickets")
+    void testGetReopenedTicket_WhenTotalIsZero() {
+        when(ticketsService.getTicketsCount(any(), any(), any(), any())).thenReturn(5L);
+        when(metricsSpecifications.isReOpened()).then(any());
+        when(metricsSpecifications.joinWithTicket(any(),any(), any(),any())).then(any());
+        when(ticketStatusHistoryRepository.count(any(Specification.class))).thenReturn(0L);
+
+        BigDecimal result = metricsService.getReopenedTicket(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+        );
+
+        assertEquals(BigDecimal.ZERO, result);
+    }
 }

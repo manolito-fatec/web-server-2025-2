@@ -13,10 +13,11 @@ import com.pardal.app.service.metrics.MetricsService;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping("/metrics")
+@RequestMapping("/api/metrics")
 @RequiredArgsConstructor
 public class MetricsController {
 
@@ -60,23 +61,28 @@ public class MetricsController {
     @GetMapping("/chart")
     public ResponseEntity<?> getAllChartData(
             @Parameter(description = "Id do produto", example = "1")
-            @RequestParam
-            Integer pProdcutId,
+            @RequestParam(name = "productId", required = false)
+            Integer productId,
 
             @Parameter(description = "Id do cliente", example = "1")
-            @RequestParam
-            Integer pCustomerId,
+            @RequestParam(name="customerId", required = false)
+            Integer customerId,
 
             @Parameter(description = "Data de inicio", example = "2025-09-15T13:45:30")
-            @RequestParam
-            LocalDateTime pFromDate,
+            @RequestParam(name = "fromDate", required = false)
+            LocalDateTime fromDate,
 
             @Parameter(description = "Data de final", example = "2025-09-15T13:45:30")
-            @RequestParam
-            LocalDateTime pToDate
+            @RequestParam(name="toDate", required = false)
+            LocalDateTime toDate
     ){
         try {
-            return ResponseEntity.ok().body(metricsService.getAllChartData(pProdcutId, pCustomerId, pFromDate, pToDate)
+            return ResponseEntity.ok().body(metricsService.getAllChartData(
+                    Optional.ofNullable(productId),
+                    Optional.ofNullable(customerId),
+                    Optional.ofNullable(fromDate),
+                    Optional.ofNullable(toDate)
+                    )
             );
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
