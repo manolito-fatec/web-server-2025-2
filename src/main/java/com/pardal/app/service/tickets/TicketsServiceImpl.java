@@ -1,8 +1,10 @@
-package com.pardal.app.service.Tickets;
+package com.pardal.app.service.tickets;
 
 import com.pardal.app.entity.Dto.TicketsByProductsCountDto;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
+import com.pardal.app.repository.specification.MetricsSpecifications;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,9 @@ public class TicketsServiceImpl implements TicketsService {
     @Autowired
     private TicketRepository ticketsRepository;
 
-    @Transactional
+    @Autowired
+    private MetricsSpecifications metricsSpecifications;
+
     @Override
     public long getTicketsCount(Optional<Integer> productId,
                                    Optional<Integer> clientId,
@@ -28,16 +32,16 @@ public class TicketsServiceImpl implements TicketsService {
         Specification<Tickets> spec = Specification.where(null);
 
         if (productId.isPresent()) {
-            spec = spec.and(TicketSpecifications.hasProductId(productId.get()));
+            spec = spec.and(metricsSpecifications.hasProductId(productId.get()));
         }
         if (clientId.isPresent()) {
-            spec = spec.and(TicketSpecifications.hasClientId(clientId.get()));
+            spec = spec.and(metricsSpecifications.hasClientId(clientId.get()));
         }
         if (dateMin.isPresent()) {
-            spec = spec.and(TicketSpecifications.hasDateAfter(dateMin.get()));
+            spec = spec.and(metricsSpecifications.hasDateAfter(dateMin.get()));
         }
         if (dateMax.isPresent()) {
-            spec = spec.and(TicketSpecifications.hasDateBefore(dateMax.get()));
+            spec = spec.and(metricsSpecifications.hasDateBefore(dateMax.get()));
         }
 
         return ticketsRepository.count(spec);
