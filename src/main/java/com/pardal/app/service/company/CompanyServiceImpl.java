@@ -1,4 +1,4 @@
-package com.pardal.app.service.Company;
+package com.pardal.app.service.company;
 
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.pardal.app.service.Product;
+package com.pardal.app.service.product;
 
 import org.springframework.stereotype.Service;
 
