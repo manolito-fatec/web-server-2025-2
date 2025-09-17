@@ -1,6 +1,6 @@
 package com.pardal.app.service.tickets;
 
-import com.pardal.app.entity.Dto.TicketsByProductsCountDto;
+import com.pardal.app.entity.dto.TicketsByProductsCountDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

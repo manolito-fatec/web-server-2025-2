@@ -1,7 +1,7 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.entity.Dto.TicketsByProductsCountDto;
-import com.pardal.app.service.Tickets.TicketsService;
+import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import com.pardal.app.service.tickets.TicketsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

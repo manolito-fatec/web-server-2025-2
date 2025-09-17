@@ -1,6 +1,6 @@
 package com.pardal.app.service.tickets;
 
-import com.pardal.app.entity.Dto.TicketsByProductsCountDto;
+import com.pardal.app.entity.dto.TicketsByProductsCountDto;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.repository.specification.MetricsSpecifications;
@@ -8,7 +8,6 @@ import com.pardal.app.repository.specification.MetricsSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
