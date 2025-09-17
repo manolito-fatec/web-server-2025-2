@@ -48,7 +48,8 @@ class MetricsServiceImplTest
     @Mock
     private TicketsService ticketsService;
 
-    @Mock MetricsSpecifications metricsSpecifications;
+    @Mock 
+    private MetricsSpecifications metricsSpecifications;
 
     @Mock
     private TicketStatusHistoryRepository ticketStatusHistoryRepository;
@@ -130,8 +131,11 @@ class MetricsServiceImplTest
     @DisplayName("should return zero when there are no reopened tickets")
     void testGetReopenedTicket_WhenTotalIsZero() {
         when(ticketsService.getTicketsCount(any(), any(), any(), any())).thenReturn(5L);
-        when(metricsSpecifications.isReOpened()).then(any());
-        when(metricsSpecifications.joinWithTicket(any(),any(), any(),any())).then(any());
+        when(metricsSpecifications.isReOpened())
+        .thenReturn((root, query, cb) -> cb.conjunction());
+
+        when(metricsSpecifications.joinWithTicket(any(), any(), any(), any()))
+        .thenReturn((root, query, cb) -> cb.conjunction());
         when(ticketStatusHistoryRepository.count(any(Specification.class))).thenReturn(0L);
 
         BigDecimal result = metricsService.getReopenedTicket(
@@ -141,6 +145,6 @@ class MetricsServiceImplTest
                 Optional.empty()
         );
 
-        assertEquals(BigDecimal.ZERO, result);
+        assertEquals(BigDecimal.ZERO.setScale(6), result);
     }
 }
