@@ -1,7 +1,7 @@
 package com.pardal.app.service.tickets;
 
 import com.pardal.app.repository.TicketRepository;
-import com.pardal.app.service.Tickets.TicketsServiceImpl;
+import com.pardal.app.service.tickets.TicketsServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,7 +89,7 @@ class TicketsServiceImplTest {
     @DisplayName("Should return zero when repository finds no matching tickets")
     void getTicketsCount_whenRepositoryReturnsZero_shouldReturnZero() {
         long expectedCount = 0L;
-        Integer productId = 999; // ID DE PRODUTO INEXISTENTE
+        Integer productId = 999;
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
