@@ -12,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import com.pardal.app.repository.TicketRepository;
+import com.pardal.app.service.tickets.TicketsServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,11 +51,17 @@ class MetricsServiceImplTest
     @Mock
     private TicketsService ticketsService;
 
-    @Mock 
+    @Mock
+    private TicketRepository ticketsRepository;
+
+    @Mock
     private MetricsSpecifications metricsSpecifications;
 
     @Mock
     private TicketStatusHistoryRepository ticketStatusHistoryRepository;
+
+    @InjectMocks
+    private TicketsServiceImpl ticketService;
 
     @InjectMocks
     private MetricsServiceImpl metricsService;
@@ -146,5 +155,51 @@ class MetricsServiceImplTest
         );
 
         assertEquals(BigDecimal.ZERO.setScale(6), result);
+    }
+
+    @Test
+    @DisplayName("getTicketsCountGroupedByProduct - should return ticket counts grouped by product when products exist")
+    void getTicketsCountGroupedByProduct_whenProductsExist_shouldReturnCounts() {
+        List<TicketsByProductsCountDto> expectedResults = List.of(
+                new TicketsByProductsCountDto(1, "Produto A", 10L),
+                new TicketsByProductsCountDto(2, "Produto B", 5L),
+                new TicketsByProductsCountDto(3, "Produto C", 20L)
+        );
+
+        when(ticketsRepository.getTicketsCountGroupedByProduct())
+                .thenReturn(expectedResults);
+
+        List<TicketsByProductsCountDto> actualResults = ticketService.getTicketsCountGroupedByProduct();
+
+        assertNotNull(actualResults);
+        assertEquals(3, actualResults.size());
+
+        assertEquals(1, actualResults.get(0).getProductId());
+        assertEquals("Produto A", actualResults.get(0).getProductName());
+        assertEquals(10L, actualResults.get(0).getTotalTickets());
+
+        assertEquals(2, actualResults.get(1).getProductId());
+        assertEquals("Produto B", actualResults.get(1).getProductName());
+        assertEquals(5L, actualResults.get(1).getTotalTickets());
+
+        assertEquals(3, actualResults.get(2).getProductId());
+        assertEquals("Produto C", actualResults.get(2).getProductName());
+        assertEquals(20L, actualResults.get(2).getTotalTickets());
+
+        verify(ticketsRepository).getTicketsCountGroupedByProduct();
+    }
+
+    @Test
+    @DisplayName("getTicketsCountGroupedByProduct - should return empty list when no tickets exist")
+    void getTicketsCountGroupedByProduct_whenNoTickets_shouldReturnEmptyList() {
+        when(ticketsRepository.getTicketsCountGroupedByProduct())
+                .thenReturn(Collections.emptyList());
+
+        List<TicketsByProductsCountDto> actualResults = ticketService.getTicketsCountGroupedByProduct();
+
+        assertNotNull(actualResults);
+        assertTrue(actualResults.isEmpty());
+
+        verify(ticketsRepository).getTicketsCountGroupedByProduct();
     }
 }
