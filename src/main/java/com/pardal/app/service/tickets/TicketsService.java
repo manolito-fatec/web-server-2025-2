@@ -13,4 +13,3 @@ public interface TicketsService {
                          Optional<LocalDateTime> dateMax);
     List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
 }
-
