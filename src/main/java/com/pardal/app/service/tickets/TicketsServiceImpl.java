@@ -22,6 +22,20 @@ public class TicketsServiceImpl implements TicketsService {
     @Autowired
     private MetricsSpecifications metricsSpecifications;
 
+    /**
+     * Calculates the number of tickets based on the provided filters.
+     * <p>
+     * This method dynamically builds a JPA {@link Specification} based on optional filters
+     * for product ID, client ID, and a date range. It then uses this specification to
+     * count the total number of tickets that match the criteria.
+     * </p>
+     *
+     * @param productId the optional product ID to filter by
+     * @param clientId the optional client ID to filter by
+     * @param dateMin the optional minimum date to filter by
+     * @param dateMax the optional maximum date to filter by
+     * @return the total number of tickets that meet all specified filter criteria
+     */
     @Override
     public long getTicketsCount(Optional<Integer> productId,
                                    Optional<Integer> clientId,
@@ -46,6 +60,17 @@ public class TicketsServiceImpl implements TicketsService {
         return ticketsRepository.count(spec);
     }
 
+    /**
+     * Retrieves the count of tickets grouped by product.
+     * <p>
+     * This method executes a query to count all tickets and groups the results by product,
+     * returning a list of {@link TicketsByProductsCountDto} objects. Each object contains
+     * the product information and the corresponding ticket count.
+     * </p>
+     *
+     * @return a {@code List} of {@link TicketsByProductsCountDto} objects, each representing a product
+     * and the total number of tickets associated with it
+     */
     @Override
     public List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct() {
         return ticketsRepository.getTicketsCountGroupedByProduct();
