@@ -30,6 +30,7 @@ public class TicketsServiceImpl implements TicketsService {
      * count the total number of tickets that match the criteria.
      * </p>
      *
+     * @author caue
      * @param productId the optional product ID to filter by
      * @param clientId the optional client ID to filter by
      * @param dateMin the optional minimum date to filter by
@@ -67,6 +68,7 @@ public class TicketsServiceImpl implements TicketsService {
      * returning a list of {@link TicketsByProductsCountDto} objects. Each object contains
      * the product information and the corresponding ticket count.
      * </p>
+     * @author gabriel
      *
      * @return a {@code List} of {@link TicketsByProductsCountDto} objects, each representing a product
      * and the total number of tickets associated with it
