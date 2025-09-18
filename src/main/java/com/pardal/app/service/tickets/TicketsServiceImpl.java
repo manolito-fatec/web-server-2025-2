@@ -23,9 +23,9 @@ public class TicketsServiceImpl implements TicketsService {
 
     @Override
     public long getTicketsCount(Optional<Integer> productId,
-                                   Optional<Integer> clientId,
-                                   Optional<LocalDateTime> dateMin,
-                                   Optional<LocalDateTime> dateMax) {
+                                Optional<Integer> clientId,
+                                Optional<LocalDateTime> dateMin,
+                                Optional<LocalDateTime> dateMax) {
 
         Specification<Tickets> spec = Specification.where(null);
 
