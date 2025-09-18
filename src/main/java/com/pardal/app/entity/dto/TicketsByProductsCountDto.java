@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class TicketsByProductsCountDto{
     private Integer productId;
+    private String productName;
     private Long totalTickets;
 }

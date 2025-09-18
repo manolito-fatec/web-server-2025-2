@@ -5,7 +5,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -96,6 +95,7 @@ public class MetricsServiceImpl implements MetricsService
     {
         ChartDto response = new ChartDto();
         response.setRecidivismRate(getReopenedTicket(pProductId,pCustomerId,pFromDate,pToDate));
+        response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct());
         return response;
     }
 
