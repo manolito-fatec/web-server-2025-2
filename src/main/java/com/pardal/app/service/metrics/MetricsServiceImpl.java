@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import com.pardal.app.entity.Tickets;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -93,9 +94,13 @@ public class MetricsServiceImpl implements MetricsService
             Optional<LocalDateTime> pFromDate,
             Optional<LocalDateTime> pToDate )
     {
+        Specification<Tickets> baseSpec = buildTicketSpecificationFromFilters(pProductId, pCustomerId, pFromDate, pToDate);
+
         ChartDto response = new ChartDto();
         response.setRecidivismRate(getReopenedTicket(pProductId,pCustomerId,pFromDate,pToDate));
         response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct());
+        response.setSlaCompliancePercentualDto(ticketsService.getSlaCompliantPercentage(baseSpec));
+
         return response;
     }
 
@@ -138,4 +143,26 @@ public class MetricsServiceImpl implements MetricsService
                 .multiply(BigDecimal.valueOf(100));
     }
 
+    private Specification<Tickets> buildTicketSpecificationFromFilters(
+            Optional<Integer> productId,
+            Optional<Integer> clientId,
+            Optional<LocalDateTime> fromDate,
+            Optional<LocalDateTime> toDate) {
+
+        Specification<Tickets> spec = Specification.where(null);
+
+        if (productId.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasProductId(productId.get()));
+        }
+        if (clientId.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasClientId(clientId.get()));
+        }
+        if (fromDate.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasDateAfter(fromDate.get()));
+        }
+        if (toDate.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasDateBefore(toDate.get()));
+        }
+        return spec;
+    }
 }

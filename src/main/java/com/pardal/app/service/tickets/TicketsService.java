@@ -1,6 +1,9 @@
 package com.pardal.app.service.tickets;
 
+import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.dto.SlaCompliancePercentualDto;
 import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,5 +14,8 @@ public interface TicketsService {
                          Optional<Integer> clientId,
                          Optional<LocalDateTime> dateMin,
                          Optional<LocalDateTime> dateMax);
+
     List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
+
+    SlaCompliancePercentualDto getSlaCompliantPercentage(Specification<Tickets> baseSpec);
 }

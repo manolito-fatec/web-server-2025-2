@@ -1,8 +1,10 @@
 package com.pardal.app.repository.specification;
 
+import com.pardal.app.entity.SlaPlan;
 import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
 
+import com.pardal.app.util.Gambiarra;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 
@@ -16,33 +18,45 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@Gambiarra(descricao = """
+        O uso de component e métodos dinamicos deixam a specification menos amigavel de usar.
+        O ideal é remover o @Component e deixar os métodos todos static para o encadeamento de métodos
+        (Ex.: Specification<Tickets> ticketsDoProdutoTalDeHoje = TicketsSpecifications.hasProductId(123).and(TicketsSpecifications.hasDateAfter(LocalDateTime.now());
+        """,
+        autor = "Pauleta")
 public class MetricsSpecifications {
 
+    @Gambiarra(autor = "Pauleta", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<Tickets> hasProductId(Integer productId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("product").get("id"), productId);
     }
 
+    @Gambiarra(autor = "Pauleta", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<Tickets> hasClientId(Integer clientId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("company").get("id"), clientId);
     }
 
+    @Gambiarra(autor = "Pauleta", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<Tickets> hasDateAfter(LocalDateTime date) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), date);
     }
 
+    @Gambiarra(autor = "Pauleta", descricao = "Metido dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS STATUS HISTORY SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<Tickets> hasDateBefore(LocalDateTime date) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), date);
     }
 
+    @Gambiarra(autor = "Pauleta", descricao = "Metido dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS STATUS HISTORY SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<TicketStatusHistory> isReOpened() {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("fromStatus").get("id"), 5);
     }
 
+    @Gambiarra(autor = "Pauleta", descricao = "Metido dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS STATUS HISTORY SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<TicketStatusHistory> joinWithTicket(
             Optional<Integer> pProductId,
             Optional<Integer> pCustomerId,
@@ -75,6 +89,48 @@ public class MetricsSpecifications {
 
             query.distinct(true);
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    /**
+     * Gera uma Specification que filtra os chamados que cumpriram o SLA de resolução.
+     * <p>
+     * A condição verifica se:
+     * <p>
+     * 1. O chamado tem uma data de fechamento (`closedAt`).
+     * <p>
+     * 2. O tempo entre a criação (`createdAt`) e o fechamento (`closedAt`) é menor ou igual
+     * ao tempo de resolução definido no plano de SLA (`resolutionMins`).
+     * <p>
+     * A função `TIMESTAMPDIFF` é usada para calcular a diferença em minutos diretamente no banco de dados,
+     * garantindo alta performance.
+     *
+     * @return Uma Specification para a condição de SLA cumprido.
+     */
+    @Gambiarra(autor = "André Wakugawa", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/18")
+    public static Specification<Tickets> isSlaMet() {
+        return (root, query, cb) -> {
+            Join<Tickets, SlaPlan> slaPlanJoin = root.join("slaPlan");
+
+            Predicate closedAtIsNotNull = cb.isNotNull(root.get("closedAt"));
+
+            // Calculo da diferença de tempo em minutos entre a criação e o fechamento
+            var timestampDiff = cb.function(
+                    "TIMESTAMPDIFF",
+                    Long.class,
+                    cb.literal("MINUTE"),
+                    root.get("createdAt"),
+                    root.get("closedAt")
+            );
+
+            // Comparacao da diferença de tempo com o tempo de resolução do SLA
+            Predicate resolutionTimeIsMet = cb.lessThanOrEqualTo(
+                    timestampDiff,
+                    slaPlanJoin.get("resolutionMins")
+            );
+
+            // Retorna se o chamado esteja fechado E que o tempo de resolução tenha sido cumprido
+            return cb.and(closedAtIsNotNull, resolutionTimeIsMet);
         };
     }
 }
