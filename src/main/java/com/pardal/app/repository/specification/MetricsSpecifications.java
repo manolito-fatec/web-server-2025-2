@@ -113,7 +113,6 @@ public class MetricsSpecifications {
 
             Predicate closedAtIsNotNull = cb.isNotNull(root.get("closedAt"));
 
-            // Calculo da diferença de tempo em minutos entre a criação e o fechamento
             var timestampDiff = cb.function(
                     "TIMESTAMPDIFF",
                     Long.class,
@@ -122,13 +121,11 @@ public class MetricsSpecifications {
                     root.get("closedAt")
             );
 
-            // Comparacao da diferença de tempo com o tempo de resolução do SLA
             Predicate resolutionTimeIsMet = cb.lessThanOrEqualTo(
                     timestampDiff,
                     slaPlanJoin.get("resolutionMins")
             );
 
-            // Retorna se o chamado esteja fechado E que o tempo de resolução tenha sido cumprido
             return cb.and(closedAtIsNotNull, resolutionTimeIsMet);
         };
     }
