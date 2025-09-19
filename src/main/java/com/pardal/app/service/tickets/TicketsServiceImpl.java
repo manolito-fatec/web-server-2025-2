@@ -1,6 +1,5 @@
 package com.pardal.app.service.tickets;
 
-import com.pardal.app.entity.dto.SlaCompliancePercentualDto;
 import com.pardal.app.entity.dto.TicketsByProductsCountDto;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
@@ -72,18 +71,17 @@ public class TicketsServiceImpl implements TicketsService {
      * @param baseSpec A specification with the compliance filters.
      * @return A DTO with the calculated SLA compliant tickets percentual.
      */
-    public SlaCompliancePercentualDto getSlaCompliantPercentage(Specification<Tickets> baseSpec) {
+    public double getSlaCompliantPercentage(Specification<Tickets> baseSpec) {
         long totalTickets = ticketsRepository.count(baseSpec);
 
         if (totalTickets == 0) {
-            return new SlaCompliancePercentualDto(0.0);
+            return 0.0;
         }
 
         Specification<Tickets> slaCompliantSpec = baseSpec.and(MetricsSpecifications.isSlaMet());
         long slaCompliantTickets = ticketsRepository.count(slaCompliantSpec);
 
-        double slaCompliantPercentage = ((double) slaCompliantTickets / totalTickets) * 100.0;
-        return new SlaCompliancePercentualDto(slaCompliantPercentage);
+        return ((double) slaCompliantTickets / totalTickets) * 100.0;
     }
 
     private Specification<Tickets> buildSpecificationFromFilters(

@@ -1,7 +1,6 @@
 package com.pardal.app.service.tickets;
 
 import com.pardal.app.entity.Tickets;
-import com.pardal.app.entity.dto.SlaCompliancePercentualDto;
 import com.pardal.app.entity.dto.TicketsByProductsCountDto;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -17,5 +16,5 @@ public interface TicketsService {
 
     List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
 
-    SlaCompliancePercentualDto getSlaCompliantPercentage(Specification<Tickets> baseSpec);
+    double getSlaCompliantPercentage(Specification<Tickets> baseSpec);
 }

@@ -14,5 +14,5 @@ public class ChartDto
 {
     private BigDecimal recidivismRate;
     private List<TicketsByProductsCountDto> ticketsCountGroupedByProduct;
-    private SlaCompliancePercentualDto slaCompliancePercentualDto;
+    private double slaCompliancePercentualDto;
 }
