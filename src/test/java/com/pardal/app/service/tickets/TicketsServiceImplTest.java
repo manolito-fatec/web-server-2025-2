@@ -2,7 +2,7 @@ package com.pardal.app.service.tickets;
 
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
-import com.pardal.app.service.tickets.TicketsServiceImpl;
+import com.pardal.app.repository.specification.MetricsSpecifications;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,11 +15,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -28,6 +26,9 @@ class TicketsServiceImplTest {
 
     @Mock
     private TicketRepository ticketRepository;
+
+    @Mock
+    private MetricsSpecifications metricsSpecifications;
 
     @InjectMocks
     private TicketsServiceImpl ticketsService;
@@ -40,6 +41,9 @@ class TicketsServiceImplTest {
         Integer clientId = 100;
         LocalDateTime dateMin = LocalDateTime.now().minusDays(10);
         LocalDateTime dateMax = LocalDateTime.now();
+
+        when(metricsSpecifications.hasProductId(any())).thenReturn(mock(Specification.class));
+        when(metricsSpecifications.hasClientId(any())).thenReturn(mock(Specification.class));
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
@@ -78,6 +82,8 @@ class TicketsServiceImplTest {
         Integer clientId = 123;
         LocalDateTime dateMin = LocalDateTime.parse("2025-09-01T00:00:00");
 
+        when(metricsSpecifications.hasClientId(any())).thenReturn(mock(Specification.class));
+
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
         long actualCount = ticketsService.getTicketsCount(
@@ -96,6 +102,8 @@ class TicketsServiceImplTest {
     void getTicketsCount_whenRepositoryReturnsZero_shouldReturnZero() {
         long expectedCount = 0L;
         Integer productId = 999;
+
+        when(metricsSpecifications.hasProductId(any())).thenReturn(mock(Specification.class));
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
