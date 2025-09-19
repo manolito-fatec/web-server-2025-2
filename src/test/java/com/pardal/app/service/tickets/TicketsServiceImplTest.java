@@ -1,5 +1,6 @@
 package com.pardal.app.service.tickets;
 
+import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.service.tickets.TicketsServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -10,10 +11,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -102,5 +108,48 @@ class TicketsServiceImplTest {
 
         assertEquals(expectedCount, actualCount);
         verify(ticketRepository, times(1)).count(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("getAverageTicketClosureTimeInHours - should calculate and return the average closure time when tickets exist")
+    void getAverageTicketClosureTimeInHours_whenTicketsExist_shouldReturnAverageTime() {
+        Tickets ticket1 = new Tickets();
+        ticket1.setCreatedAt(Instant.parse("2025-09-15T10:00:00Z"));
+        ticket1.setClosedAt(Instant.parse("2025-09-15T12:00:00Z"));
+
+        Tickets ticket2 = new Tickets();
+        ticket2.setCreatedAt(Instant.parse("2025-09-14T08:00:00Z"));
+        ticket2.setClosedAt(Instant.parse("2025-09-14T11:30:00Z"));
+
+        Tickets ticket3 = new Tickets();
+        ticket3.setCreatedAt(Instant.parse("2025-09-13T14:00:00Z"));
+        ticket3.setClosedAt(Instant.parse("2025-09-13T19:00:00Z"));
+
+        List<Tickets> closedTickets = List.of(ticket1, ticket2, ticket3);
+
+        when(ticketRepository.findAllByClosedAtIsNotNull())
+                .thenReturn(closedTickets);
+
+        Double averageTime = ticketsService.getAverageTicketClosureTimeInHours();
+
+        assertEquals(3.5, averageTime);
+
+        verify(ticketRepository).findAllByClosedAtIsNotNull();
+    }
+
+    @Test
+    @DisplayName("getAverageTicketClosureTimeInHours - should throw NoSuchElementException when no closed tickets exist")
+    void getAverageTicketClosureTimeInHours_whenNoTicketsExist_shouldThrowException() {
+        when(ticketRepository.findAllByClosedAtIsNotNull())
+                .thenReturn(Collections.emptyList());
+
+        NoSuchElementException thrown = assertThrows(
+                NoSuchElementException.class,
+                () -> ticketsService.getAverageTicketClosureTimeInHours()
+        );
+
+        assertEquals("No tickets found for calculation", thrown.getMessage());
+
+        verify(ticketRepository).findAllByClosedAtIsNotNull();
     }
 }
