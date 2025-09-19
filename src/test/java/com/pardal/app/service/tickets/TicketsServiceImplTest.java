@@ -3,6 +3,9 @@ package com.pardal.app.service.tickets;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.repository.specification.MetricsSpecifications;
+import com.pardal.app.service.tickets.TicketsServiceImpl;
+import com.pardal.app.util.Gambiarra;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +26,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TicketsServiceImplTest {
+
+    @Mock
+    @Gambiarra(descricao = "injetado para evitar null pointers nos testes. o ideal é Specifications ter métodos estáticos", autor = "AndreWakugawa")
+    private MetricsSpecifications metricsSpecifications;
 
     @Mock
     private TicketRepository ticketRepository;
