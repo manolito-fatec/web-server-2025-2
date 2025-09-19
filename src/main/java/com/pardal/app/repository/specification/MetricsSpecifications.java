@@ -92,21 +92,20 @@ public class MetricsSpecifications {
         };
     }
 
-    /**
-     * Gera uma Specification que filtra os chamados que cumpriram o SLA de resolução.
-     * <p>
-     * A condição verifica se:
-     * <p>
-     * 1. O chamado tem uma data de fechamento (`closedAt`).
-     * <p>
-     * 2. O tempo entre a criação (`createdAt`) e o fechamento (`closedAt`) é menor ou igual
-     * ao tempo de resolução definido no plano de SLA (`resolutionMins`).
-     * <p>
-     * A função `TIMESTAMPDIFF` é usada para calcular a diferença em minutos diretamente no banco de dados,
-     * garantindo alta performance.
-     *
-     * @return Uma Specification para a condição de SLA cumprido.
-     */
+/**
+ * Generates a Specification that filters tickets which have met the resolution SLA.
+ * <p>
+ * The condition checks if:
+ * <p>
+ * 1. The ticket has a closing date (`closedAt`).
+ * <p>
+ * 2. The time between the creation (`createdAt`) and the closing (`closedAt`) is less than or equal
+ * to the resolution time defined in the SLA plan (`resolutionMins`).
+ * <p>
+ * The `TIMESTAMPDIFF` function is used to calculate the difference in minutes directly in the database.
+ *
+ * @return A Specification for the 'SLA met' condition.
+ */
     @Gambiarra(autor = "André Wakugawa", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/18")
     public static Specification<Tickets> isSlaMet() {
         return (root, query, cb) -> {
