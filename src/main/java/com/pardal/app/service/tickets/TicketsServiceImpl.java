@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +84,22 @@ public class TicketsServiceImpl implements TicketsService {
 
         return ((double) slaCompliantTickets / totalTickets) * 100.0;
     }
+  
+    @Override
+    public Double getAverageTicketClosureTimeInHours() {
+        List<Tickets> closedTickets = ticketsRepository.findAllByClosedAtIsNotNull();
 
+        if (closedTickets.isEmpty()) {
+            return 0.0;
+        }
+
+        long totalDurationInSeconds = closedTickets.stream()
+                .mapToLong(ticket -> Duration.between(ticket.getCreatedAt(), ticket.getClosedAt()).getSeconds())
+                .sum();
+
+        return (double) totalDurationInSeconds / closedTickets.size() / 3600.0;
+    }
+ 
     private Specification<Tickets> buildSpecificationFromFilters(
             Optional<Integer> productId,
             Optional<Integer> clientId,

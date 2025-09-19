@@ -15,4 +15,5 @@ public class ChartDto
     private BigDecimal recidivismRate;
     private List<TicketsByProductsCountDto> ticketsCountGroupedByProduct;
     private double slaCompliancePercentualDto;
+    private Double ticketClosureTimeInHours;
 }

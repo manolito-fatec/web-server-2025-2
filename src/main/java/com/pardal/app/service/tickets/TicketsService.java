@@ -17,4 +17,6 @@ public interface TicketsService {
     List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
 
     double getSlaCompliantPercentage(Specification<Tickets> baseSpec);
+  
+    Double getAverageTicketClosureTimeInHours();
 }
