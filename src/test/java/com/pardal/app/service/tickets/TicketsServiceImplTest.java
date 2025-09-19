@@ -34,9 +34,6 @@ class TicketsServiceImplTest {
     @Mock
     private TicketRepository ticketRepository;
 
-    @Mock
-    private MetricsSpecifications metricsSpecifications;
-
     @InjectMocks
     private TicketsServiceImpl ticketsService;
 
