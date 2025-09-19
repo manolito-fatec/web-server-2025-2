@@ -44,20 +44,7 @@ public class TicketsServiceImpl implements TicketsService {
                                 Optional<LocalDateTime> dateMin,
                                 Optional<LocalDateTime> dateMax) {
 
-        Specification<Tickets> spec = Specification.where(null);
-
-        if (productId.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasProductId(productId.get()));
-        }
-        if (clientId.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasClientId(clientId.get()));
-        }
-        if (dateMin.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasDateAfter(dateMin.get()));
-        }
-        if (dateMax.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasDateBefore(dateMax.get()));
-        }
+        Specification<Tickets> spec = buildSpecificationFromFilters(productId, clientId, dateMin, dateMax);
 
         return ticketsRepository.count(spec);
     }
@@ -79,6 +66,25 @@ public class TicketsServiceImpl implements TicketsService {
         return ticketsRepository.getTicketsCountGroupedByProduct();
     }
 
+    /**
+     * Calculates the SLA compliant tickets percentual.
+     *
+     * @param baseSpec A specification with the compliance filters.
+     * @return A DTO with the calculated SLA compliant tickets percentual.
+     */
+    public double getSlaCompliantPercentage(Specification<Tickets> baseSpec) {
+        long totalTickets = ticketsRepository.count(baseSpec);
+
+        if (totalTickets == 0) {
+            return 0.0;
+        }
+
+        Specification<Tickets> slaCompliantSpec = baseSpec.and(MetricsSpecifications.isSlaMet());
+        long slaCompliantTickets = ticketsRepository.count(slaCompliantSpec);
+
+        return ((double) slaCompliantTickets / totalTickets) * 100.0;
+    }
+  
     @Override
     public Double getAverageTicketClosureTimeInHours() {
         List<Tickets> closedTickets = ticketsRepository.findAllByClosedAtIsNotNull();
@@ -92,5 +98,29 @@ public class TicketsServiceImpl implements TicketsService {
                 .sum();
 
         return (double) totalDurationInSeconds / closedTickets.size() / 3600.0;
+    }
+ 
+    private Specification<Tickets> buildSpecificationFromFilters(
+            Optional<Integer> productId,
+            Optional<Integer> clientId,
+            Optional<LocalDateTime> fromDate,
+            Optional<LocalDateTime> toDate) {
+
+        Specification<Tickets> spec = Specification.where(null);
+
+        if (productId.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasProductId(productId.get()));
+        }
+        if (clientId.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasClientId(clientId.get()));
+        }
+        if (fromDate.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasDateAfter(fromDate.get()));
+        }
+        if (toDate.isPresent()) {
+            spec = spec.and(metricsSpecifications.hasDateBefore(toDate.get()));
+        }
+
+        return spec;
     }
 }
