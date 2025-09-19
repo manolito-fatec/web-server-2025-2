@@ -14,4 +14,5 @@ public class ChartDto
 {
     private BigDecimal recidivismRate;
     private List<TicketsByProductsCountDto> ticketsCountGroupedByProduct;
+    private Double ticketClosureTimeInHours;
 }
