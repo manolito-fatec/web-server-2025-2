@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -85,15 +84,13 @@ public class TicketsServiceImpl implements TicketsService {
         List<Tickets> closedTickets = ticketsRepository.findAllByClosedAtIsNotNull();
 
         if (closedTickets.isEmpty()) {
-            throw new NoSuchElementException("No tickets found for calculation");
+            return 0.0;
         }
 
         long totalDurationInSeconds = closedTickets.stream()
                 .mapToLong(ticket -> Duration.between(ticket.getCreatedAt(), ticket.getClosedAt()).getSeconds())
                 .sum();
 
-        double averageTime = (double) totalDurationInSeconds / closedTickets.size() / 3600.0;
-
-        return Math.round(averageTime * 100.0) / 100.0;
+        return (double) totalDurationInSeconds / closedTickets.size() / 3600.0;
     }
 }

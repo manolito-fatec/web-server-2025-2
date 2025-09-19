@@ -138,17 +138,14 @@ class TicketsServiceImplTest {
     }
 
     @Test
-    @DisplayName("getAverageTicketClosureTimeInHours - should throw NoSuchElementException when no closed tickets exist")
-    void getAverageTicketClosureTimeInHours_whenNoTicketsExist_shouldThrowException() {
+    @DisplayName("getAverageTicketClosureTimeInHours - should return 0.0 when no closed tickets exist")
+    void getAverageTicketClosureTimeInHours_whenNoTicketsExist_shouldReturnZero() {
         when(ticketRepository.findAllByClosedAtIsNotNull())
                 .thenReturn(Collections.emptyList());
 
-        NoSuchElementException thrown = assertThrows(
-                NoSuchElementException.class,
-                () -> ticketsService.getAverageTicketClosureTimeInHours()
-        );
+        Double averageTime = ticketsService.getAverageTicketClosureTimeInHours();
 
-        assertEquals("No tickets found for calculation", thrown.getMessage());
+        assertEquals(0.0, averageTime);
 
         verify(ticketRepository).findAllByClosedAtIsNotNull();
     }
