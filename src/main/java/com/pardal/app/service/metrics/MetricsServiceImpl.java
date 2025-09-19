@@ -96,6 +96,7 @@ public class MetricsServiceImpl implements MetricsService
         ChartDto response = new ChartDto();
         response.setRecidivismRate(getReopenedTicket(pProductId,pCustomerId,pFromDate,pToDate));
         response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct());
+        response.setTicketClosureTimeInHours(ticketsService.getAverageTicketClosureTimeInHours());
         return response;
     }
 
