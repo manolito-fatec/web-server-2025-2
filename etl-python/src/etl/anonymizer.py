@@ -7,7 +7,7 @@ Created on 09/10/2025 00:41
 import logging
 import re
 
-import pt_core_news_lg
+import spacy
 
 log = logging.getLogger(__name__)
 
@@ -22,28 +22,43 @@ class Anonymizer:
         r'(\(?\+?[0-9]{1,3}\)?\s?)?\(?[0-9]{2,4}\)?\s?([0-9]{2,5})?[-.\s]?([0-9]{3,5})[-.\s]?([0-9]{3,5})')
     _REGEX_PATTERNS = [_CPF_REGEX, _EMAIL_REGEX, _PHONE_REGEX]
 
+    _NLP_MODEL = None
+
     try:
-        _NLP_MODEL = pt_core_news_lg.load()
-    except OSError:
-        log.error("ERROR: SpaCy model 'pt_core_news_lg' not found.")
-        _NLP_MODEL = None
+        spacy.require_gpu()
+        log.info("GPU activated.")
 
-    def anonymize_with_ner(self, text: str) -> tuple[str, bool]:
+        _NLP_MODEL = spacy.load("pt_core_news_lg")
+        log.info("pt_core_news_lg' model loaded on GPU.")
+
+    except Exception as e:
+        log.warning(f"GPU not activated or model failed to load. Using CPU. Error: {e}")
+        if not _NLP_MODEL:
+            try:
+                _NLP_MODEL = spacy.load("pt_core_news_lg")
+                log.info("pt_core_news_lg' model loaded on CPU.")
+            except OSError:
+                log.error("SpaCy model 'pt_core_news_lg' not found.")
+
+    def anonymize_with_ner(self, texts: list[str], batch_size: int = 3000) -> list[tuple[str, bool]]:
         """Applies the NER model to find and mask people's names."""
-        if not isinstance(text, str) or not text or not self._NLP_MODEL:
-            return text, False
+        if not texts or not self._NLP_MODEL:
+            return [(text, False) for text in texts]
 
-        doc = self._NLP_MODEL(text)
-        new_text = text
-        found_pii = False
+        results = []
+        docs = self._NLP_MODEL.pipe(texts, batch_size=batch_size)
 
-        for ent in reversed(doc.ents):
-            if ent.label_ == "PERSON":
-                start, end = ent.start_char, ent.end_char
-                new_text = new_text[:start] + self.ANONYMIZATION_MASK + new_text[end:]
-                found_pii = True
+        for original_text, doc in zip(texts, docs):
+            new_text = original_text
+            found_pii = False
+            for ent in reversed(doc.ents):
+                if ent.label_ == "PERSON":
+                    start, end = ent.start_char, ent.end_char
+                    new_text = new_text[:start] + self.ANONYMIZATION_MASK + new_text[end:]
+                    found_pii = True
+            results.append((new_text, found_pii))
 
-        return new_text, found_pii
+        return results
 
     def anonymize_with_regex(self, text: str) -> tuple[str, bool]:
         """Applies regex patterns to find and mask personal data in a text."""
