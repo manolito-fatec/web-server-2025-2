@@ -101,6 +101,7 @@ public class MetricsServiceImpl implements MetricsService
         response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct());
         response.setSlaCompliancePercentualDto(ticketsService.getSlaCompliantPercentage(baseSpec));
         response.setTicketClosureTimeInHours(ticketsService.getAverageTicketClosureTimeInHours());
+        response.setTicketsCount(ticketsService.getTicketsCount(pProductId, pCustomerId, pFromDate, pToDate));
         return response;
     }
 
