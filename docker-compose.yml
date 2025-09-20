@@ -48,5 +48,13 @@ services:
       mongo:
         condition: service_healthy
 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
 volumes:
   mongo-data:

@@ -102,12 +102,20 @@ class AnonymizationPipeline:
 
             while True:
                 rows = pg_cursor.fetchmany(settings.BATCH_SIZE)
-                if not rows:
-                    break
-
+                if not rows: break
                 self.total_scanned += len(rows)
 
-                for row in rows:
+                batch_to_process = {}
+                for i, row in enumerate(rows):
+                    for col in ner_columns:
+                        if col not in batch_to_process: batch_to_process[col] = []
+                        batch_to_process[col].append(row[col] or "")
+
+                ner_results = {}
+                for col, texts in batch_to_process.items():
+                    ner_results[col] = self.anonymizer.anonymize_with_ner(texts)
+
+                for i, row in enumerate(rows):
                     update_payload = {"pk_value": row[pk_column]}
                     needs_update = False
 
@@ -115,10 +123,9 @@ class AnonymizationPipeline:
                         original_value = row[col]
                         anonymized_val = original_value
                         changed_by_ner = False
-                        changed_by_regex = False
 
                         if col in ner_columns:
-                            anonymized_val, changed_by_ner = self.anonymizer.anonymize_with_ner(anonymized_val)
+                            anonymized_val, changed_by_ner = ner_results[col][i]
 
                         if col in regex_columns:
                             anonymized_val, changed_by_regex = self.anonymizer.anonymize_with_regex(anonymized_val)
@@ -129,17 +136,38 @@ class AnonymizationPipeline:
 
                     if needs_update:
                         all_records_to_update.append(update_payload)
-
-        return all_records_to_update
+            return all_records_to_update
 
     def _load_updates(self, records: list, table_config: dict, pg_conn):
-        """Executes the UPDATE commands in the database and logs the individual records."""
+        """Executes the UPDATE commands in the database in a single batch and logs the records."""
+        if not records:
+            return
+
         table_name = table_config['table_name']
         pk_column = table_config['pk_column']
+
+        update_cols = [col for col in records[0].keys() if col != 'pk_value']
+
+        set_clause = ", ".join([f'"{col}" = %s' for col in update_cols])
+        update_query = f'UPDATE "{table_name}" SET {set_clause} WHERE "{pk_column}" = %s'
+
+        data_to_update = []
+        for record in records:
+            row_data = [record.get(col) for col in update_cols] + [record['pk_value']]
+            data_to_update.append(tuple(row_data))
 
         with MongoConnector() as mongo_client:
             audit_collection = mongo_client[settings.MONGO_DATABASE][settings.MONGO_COLLECTION]
             logger = AuditLogger(audit_collection)
+
+            with pg_conn.cursor() as update_cursor:
+                psycopg2.extras.execute_batch(update_cursor, update_query, data_to_update)
+
+                for record in records:
+                    logger.log_individual_update(settings.DB_NAME, table_name, record['pk_value'])
+                    self.total_anonymized += 1
+
+            log.info(f"{len(records)} records were updated in table '{table_name}'.")
 
             with pg_conn.cursor() as update_cursor:
                 for record in records:
