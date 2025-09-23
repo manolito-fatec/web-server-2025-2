@@ -11,5 +11,4 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Tickets, Long>, JpaSpecificationExecutor<Tickets> {
     @Query("SELECT new com.pardal.app.entity.dto.TicketsByProductsCountDto(t.product.id, t.product.name, COUNT(t)) FROM Tickets t GROUP BY t.product.id, t.product.name")
     List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
-    List<Tickets> findAllByClosedAtIsNotNull();
 }

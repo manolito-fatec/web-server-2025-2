@@ -128,4 +128,20 @@ public class MetricsSpecifications {
             return cb.and(closedAtIsNotNull, resolutionTimeIsMet);
         };
     }
+
+/**
+ * Generates a Specification to filter tickets that have a defined closing date.
+ * <p>
+ * The condition checks if the `closedAt` field of a ticket is not null.
+ * <p>
+ * This is useful for retrieving all tickets that have been closed, regardless of any other criteria.
+ *
+ * @author Gabriel Bartolomeu
+ * @return A Specification for the 'is closed' condition.
+ */
+    @Gambiarra(autor = "Gabriel Bartolomeu", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/23")
+    public static Specification<Tickets> isClosed() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isNotNull(root.get("closedAt"));
+    }
 }
