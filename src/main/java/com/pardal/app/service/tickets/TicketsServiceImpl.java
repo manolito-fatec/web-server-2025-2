@@ -86,8 +86,10 @@ public class TicketsServiceImpl implements TicketsService {
     }
   
     @Override
-    public Double getAverageTicketClosureTimeInHours() {
-        List<Tickets> closedTickets = ticketsRepository.findAllByClosedAtIsNotNull();
+    public Double getAverageTicketClosureTimeInHours(Specification<Tickets> baseSpec) {
+        Specification<Tickets> finalSpec = Specification.where(baseSpec).and(MetricsSpecifications.isClosed());
+
+        List<Tickets> closedTickets = ticketsRepository.findAll(finalSpec);
 
         if (closedTickets.isEmpty()) {
             return 0.0;
