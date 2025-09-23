@@ -18,5 +18,5 @@ public interface TicketsService {
 
     double getSlaCompliantPercentage(Specification<Tickets> baseSpec);
   
-    Double getAverageTicketClosureTimeInHours();
+    Double getAverageTicketClosureTimeInHours(Specification<Tickets> baseSpec);
 }

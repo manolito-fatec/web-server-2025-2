@@ -139,26 +139,26 @@ class TicketsServiceImplTest {
 
         List<Tickets> closedTickets = List.of(ticket1, ticket2, ticket3);
 
-        when(ticketRepository.findAllByClosedAtIsNotNull())
+        when(ticketRepository.findAll(any(Specification.class)))
                 .thenReturn(closedTickets);
 
-        Double averageTime = ticketsService.getAverageTicketClosureTimeInHours();
+        Double averageTime = ticketsService.getAverageTicketClosureTimeInHours(Specification.where(null));
 
         assertEquals(3.5, averageTime);
 
-        verify(ticketRepository).findAllByClosedAtIsNotNull();
+        verify(ticketRepository).findAll(any(Specification.class));
     }
 
     @Test
     @DisplayName("getAverageTicketClosureTimeInHours - should return 0.0 when no closed tickets exist")
     void getAverageTicketClosureTimeInHours_whenNoTicketsExist_shouldReturnZero() {
-        when(ticketRepository.findAllByClosedAtIsNotNull())
+        when(ticketRepository.findAll(any(Specification.class)))
                 .thenReturn(Collections.emptyList());
 
-        Double averageTime = ticketsService.getAverageTicketClosureTimeInHours();
+        Double averageTime = ticketsService.getAverageTicketClosureTimeInHours(Specification.where(null));
 
         assertEquals(0.0, averageTime);
 
-        verify(ticketRepository).findAllByClosedAtIsNotNull();
+        verify(ticketRepository).findAll(any(Specification.class));
     }
 }
