@@ -8,6 +8,8 @@ import com.pardal.app.util.Gambiarra;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
+import org.hibernate.query.sqm.TemporalUnit;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -102,8 +104,8 @@ public class MetricsSpecifications {
  * 2. The time between the creation (`createdAt`) and the closing (`closedAt`) is less than or equal
  * to the resolution time defined in the SLA plan (`resolutionMins`).
  * <p>
- * The `TIMESTAMPDIFF` function is used to calculate the difference in minutes directly in the database.
  *
+ * @author André Wakugawa 
  * @return A Specification for the 'SLA met' condition.
  */
     @Gambiarra(autor = "André Wakugawa", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/18")
@@ -113,14 +115,11 @@ public class MetricsSpecifications {
 
             Predicate closedAtIsNotNull = cb.isNotNull(root.get("closedAt"));
 
-            var timestampDiff = cb.function(
-                    "TIMESTAMPDIFF",
-                    Long.class,
-                    cb.literal("MINUTE"),
-                    root.get("createdAt"),
-                    root.get("closedAt")
+            HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
+            var timestampDiff = hcb.durationByUnit(
+                    TemporalUnit.MINUTE,
+                    hcb.durationBetween(root.get("closedAt"),root.get("createdAt"))
             );
-
             Predicate resolutionTimeIsMet = cb.lessThanOrEqualTo(
                     timestampDiff,
                     slaPlanJoin.get("resolutionMins")
