@@ -14,7 +14,7 @@ public interface TicketsService {
                          Optional<LocalDateTime> dateMin,
                          Optional<LocalDateTime> dateMax);
 
-    List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
+    List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct(Specification<Tickets> baseSpec);
 
     double getSlaCompliantPercentage(Specification<Tickets> baseSpec);
   
