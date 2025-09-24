@@ -6,10 +6,6 @@ import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
 
 import com.pardal.app.util.Gambiarra;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 
@@ -32,9 +28,6 @@ import java.util.Optional;
         """,
         autor = "Pauleta")
 public class MetricsSpecifications {
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Gambiarra(autor = "Pauleta", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/17")
     public Specification<Tickets> hasProductId(Integer productId) {
