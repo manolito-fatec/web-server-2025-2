@@ -49,8 +49,8 @@ class TicketsServiceImplTest {
         testFilters = new DashboardFilterDto();
         testFilters.setProductId(1);
         testFilters.setCustomerId(100);
-        testFilters.setStartDate(LocalDateTime.now().minusDays(7));
-        testFilters.setEndDate(LocalDateTime.now());
+        testFilters.setFromDate(LocalDateTime.now().minusDays(7));
+        testFilters.setToDate(LocalDateTime.now());
         testFilters.setPeriods(GroupingPeriods.DAY);
     }
 
@@ -89,7 +89,7 @@ class TicketsServiceImplTest {
 
         DashboardFilterDto partialFilters = new DashboardFilterDto();
         partialFilters.setCustomerId(123);
-        partialFilters.setStartDate(LocalDateTime.parse("2025-09-01T00:00:00"));
+        partialFilters.setFromDate(LocalDateTime.parse("2025-09-01T00:00:00"));
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 

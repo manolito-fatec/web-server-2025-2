@@ -88,8 +88,8 @@ class MetricsServiceImplTest
         testFilters = new DashboardFilterDto();
         testFilters.setProductId(1);
         testFilters.setCustomerId(1);
-        testFilters.setStartDate(LocalDateTime.now().minusDays(7));
-        testFilters.setEndDate(LocalDateTime.now());
+        testFilters.setFromDate(LocalDateTime.now().minusDays(7));
+        testFilters.setToDate(LocalDateTime.now());
         testFilters.setPeriods(GroupingPeriods.MONTH);
     }
 
