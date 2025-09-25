@@ -60,7 +60,6 @@ public class MetricsController {
     @GetMapping("/chart")
     public ResponseEntity<?> getAllChartData(
             @Parameter(description = "Dto de filtro com dados de productId, customerId, startDate, endDate e período de agrupamento.")
-            @RequestParam(name = "filterDto", required = false)
             DashboardFilterDto filters
     ){
         try {

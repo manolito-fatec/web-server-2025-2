@@ -33,14 +33,14 @@ public final class TicketsSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("company").get("id"), pFilters.getCustomerId()));
             }
 
-            if (pFilters.getStartDate() != null) {
+            if (pFilters.getFromDate() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
-                        root.get("createdAt"), pFilters.getStartDate().toInstant(ZoneOffset.UTC)));
+                        root.get("createdAt"), pFilters.getFromDate().toInstant(ZoneOffset.UTC)));
             }
 
-            if (pFilters.getEndDate() != null) {
+            if (pFilters.getToDate() != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(
-                        root.get("createdAt"), pFilters.getEndDate().toInstant(ZoneOffset.UTC)));
+                        root.get("createdAt"), pFilters.getToDate().toInstant(ZoneOffset.UTC)));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

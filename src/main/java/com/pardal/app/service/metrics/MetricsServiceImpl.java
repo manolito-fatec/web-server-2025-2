@@ -126,8 +126,8 @@ public class MetricsServiceImpl implements MetricsService
                              .and(metricsSpecifications.joinWithTicket(
                                      Optional.ofNullable(pFilters.getProductId()),
                                      Optional.ofNullable(pFilters.getCustomerId()),
-                                     Optional.ofNullable(pFilters.getStartDate()),
-                                     Optional.ofNullable(pFilters.getEndDate())));
+                                     Optional.ofNullable(pFilters.getFromDate()),
+                                     Optional.ofNullable(pFilters.getToDate())));
 
         long totalOfTicketsReopened = ticketStatusHistoryRepository.count(reopenedSpec);
 
@@ -150,11 +150,11 @@ public class MetricsServiceImpl implements MetricsService
         if (pFilters.getCustomerId() != null) {
             spec = spec.and(metricsSpecifications.hasClientId(pFilters.getCustomerId()));
         }
-        if (pFilters.getStartDate() != null) {
-            spec = spec.and(metricsSpecifications.hasDateAfter(pFilters.getStartDate()));
+        if (pFilters.getFromDate() != null) {
+            spec = spec.and(metricsSpecifications.hasDateAfter(pFilters.getFromDate()));
         }
-        if (pFilters.getEndDate() != null) {
-            spec = spec.and(metricsSpecifications.hasDateBefore(pFilters.getEndDate()));
+        if (pFilters.getToDate() != null) {
+            spec = spec.and(metricsSpecifications.hasDateBefore(pFilters.getToDate()));
         }
         return spec;
     }

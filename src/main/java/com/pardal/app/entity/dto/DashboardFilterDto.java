@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class DashboardFilterDto {
     private Integer productId;
     private Integer customerId;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private LocalDateTime fromDate;
+    private LocalDateTime toDate;
     private GroupingPeriods periods;
 }
