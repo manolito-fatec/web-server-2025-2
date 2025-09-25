@@ -2,10 +2,10 @@ package com.pardal.app.service.metrics;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.dto.DashboardFilterDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -82,26 +82,23 @@ public class MetricsServiceImpl implements MetricsService
      * </p>
      *
      *@author paulo
-     * @param pProductId  the ID of the product to filter by (nullable, optional filter)
-     * @param pCustomerId the ID of the customer to filter by (nullable, optional filter)
-     * @param pFromDate   the start date of the time range for filtering data (nullable, optional)
-     * @param pToDate     the end date of the time range for filtering data (nullable, optional)
+     * @param pFilters  the DTO with information of the product, the customer,
+     *                  the start date of the time range,
+     *                  the end date of the time range
+     *                  and the period to filter by (all of them are nullable, optional filters);
      * @return a {@link ChartDto} containing all calculated values and metrics for charts and cards
      */
     @Override
-    public ChartDto getAllChartData ( Optional<Integer> pProductId,
-            Optional<Integer> pCustomerId,
-            Optional<LocalDateTime> pFromDate,
-            Optional<LocalDateTime> pToDate )
+    public ChartDto getAllChartData (DashboardFilterDto pFilters)
     {
-        Specification<Tickets> baseSpec = buildTicketSpecificationFromFilters(pProductId, pCustomerId, pFromDate, pToDate);
+        Specification<Tickets> baseSpec = buildTicketSpecificationFromFilters(pFilters);
 
         ChartDto response = new ChartDto();
-        response.setRecidivismRate(getReopenedTicket(pProductId,pCustomerId,pFromDate,pToDate));
+        response.setRecidivismRate(getReopenedTicket(pFilters));
         response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct());
         response.setSlaCompliancePercentualDto(ticketsService.getSlaCompliantPercentage(baseSpec));
         response.setTicketClosureTimeInHours(ticketsService.getAverageTicketClosureTimeInHours(baseSpec));
-        response.setTicketsCount(ticketsService.getTicketsCount(pProductId, pCustomerId, pFromDate, pToDate));
+        response.setTicketsCountOverTime(ticketsService.getTicketCountByPeriod(pFilters));
         return response;
     }
 
@@ -113,24 +110,24 @@ public class MetricsServiceImpl implements MetricsService
      * </p>
      *
      * @author paulo
-     * @param pProductId  the product ID used to filter tickets (nullable, optional)
-     * @param pCustomerId the customer ID used to filter tickets (nullable, optional)
-     * @param pFromDate   the start date of the period to filter by (nullable, optional)
-     * @param pToDate     the end date of the period to filter by (nullable, optional)
+     * @param pFilters  the DTO with information of the product, the customer,
+     *                  the start date of the time range,
+     *                  the end date of the time range
+     *                  and the period to filter by (all of them are nullable, optional filters);
      * @return the recidivism rate as a {@code Double}, representing the proportion of reopened tickets
      *         relative to the total number of tickets; returns {@code 0.0} if there are no tickets
      */
-    protected BigDecimal getReopenedTicket(Optional<Integer> pProductId,
-            Optional<Integer> pCustomerId,
-            Optional<LocalDateTime> pFromDate,
-            Optional<LocalDateTime> pToDate)
+    protected BigDecimal getReopenedTicket(DashboardFilterDto pFilters)
     {
-        long totalOfTickets = ticketsService.getTicketsCount(pProductId, pCustomerId, pFromDate, pToDate);
+        long totalOfTickets = ticketsService.getTicketsCount(pFilters);
 
         Specification<TicketStatusHistory> reopenedSpec =
                 Specification.where(metricsSpecifications.isReOpened())
                              .and(metricsSpecifications.joinWithTicket(
-                                     pProductId, pCustomerId, pFromDate, pToDate));
+                                     Optional.ofNullable(pFilters.getProductId()),
+                                     Optional.ofNullable(pFilters.getCustomerId()),
+                                     Optional.ofNullable(pFilters.getStartDate()),
+                                     Optional.ofNullable(pFilters.getEndDate())));
 
         long totalOfTicketsReopened = ticketStatusHistoryRepository.count(reopenedSpec);
 
@@ -144,25 +141,20 @@ public class MetricsServiceImpl implements MetricsService
                 .multiply(BigDecimal.valueOf(100));
     }
 
-    private Specification<Tickets> buildTicketSpecificationFromFilters(
-            Optional<Integer> productId,
-            Optional<Integer> clientId,
-            Optional<LocalDateTime> fromDate,
-            Optional<LocalDateTime> toDate) {
-
+    private Specification<Tickets> buildTicketSpecificationFromFilters(DashboardFilterDto pFilters) {
         Specification<Tickets> spec = Specification.where(null);
 
-        if (productId.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasProductId(productId.get()));
+        if (pFilters.getProductId() != null) {
+            spec = spec.and(metricsSpecifications.hasProductId(pFilters.getProductId()));
         }
-        if (clientId.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasClientId(clientId.get()));
+        if (pFilters.getCustomerId() != null) {
+            spec = spec.and(metricsSpecifications.hasClientId(pFilters.getCustomerId()));
         }
-        if (fromDate.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasDateAfter(fromDate.get()));
+        if (pFilters.getStartDate() != null) {
+            spec = spec.and(metricsSpecifications.hasDateAfter(pFilters.getStartDate()));
         }
-        if (toDate.isPresent()) {
-            spec = spec.and(metricsSpecifications.hasDateBefore(toDate.get()));
+        if (pFilters.getEndDate() != null) {
+            spec = spec.and(metricsSpecifications.hasDateBefore(pFilters.getEndDate()));
         }
         return spec;
     }

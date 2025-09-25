@@ -8,11 +8,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
+import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.service.tickets.TicketsServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +37,6 @@ import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
 import com.pardal.app.repository.TicketStatusHistoryRepository;
 import com.pardal.app.repository.specification.MetricsSpecifications;
-import com.pardal.app.service.metrics.MetricsService;
 import com.pardal.app.service.tickets.TicketsService;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,6 +69,7 @@ class MetricsServiceImplTest
 
     private Page<Company> companyPage;
     private Page<Product> productPage;
+    private DashboardFilterDto testFilters;
 
     @BeforeEach
     void setUp() {
@@ -82,6 +84,13 @@ class MetricsServiceImplTest
         product.setName("Test Product");
         List<Product> productList = Collections.singletonList(product);
         productPage = new PageImpl<>(productList);
+
+        testFilters = new DashboardFilterDto();
+        testFilters.setProductId(1);
+        testFilters.setCustomerId(1);
+        testFilters.setStartDate(LocalDateTime.now().minusDays(7));
+        testFilters.setEndDate(LocalDateTime.now());
+        testFilters.setPeriods(GroupingPeriods.MONTH);
     }
 
     @Test
@@ -139,7 +148,8 @@ class MetricsServiceImplTest
     @Test
     @DisplayName("should return zero when there are no reopened tickets")
     void testGetReopenedTicket_WhenTotalIsZero() {
-        when(ticketsService.getTicketsCount(any(), any(), any(), any())).thenReturn(5L);
+
+        when(ticketsService.getTicketsCount(any(DashboardFilterDto.class))).thenReturn(5L);
         when(metricsSpecifications.isReOpened())
         .thenReturn((root, query, cb) -> cb.conjunction());
 
@@ -147,12 +157,7 @@ class MetricsServiceImplTest
         .thenReturn((root, query, cb) -> cb.conjunction());
         when(ticketStatusHistoryRepository.count(any(Specification.class))).thenReturn(0L);
 
-        BigDecimal result = metricsService.getReopenedTicket(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
-        );
+        BigDecimal result = metricsService.getReopenedTicket(testFilters);
 
         assertEquals(BigDecimal.ZERO.setScale(6), result);
     }

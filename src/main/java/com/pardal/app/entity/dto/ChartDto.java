@@ -16,5 +16,5 @@ public class ChartDto
     private List<TicketsByProductsCountDto> ticketsCountGroupedByProduct;
     private double slaCompliancePercentualDto;
     private Double ticketClosureTimeInHours;
-    private long ticketsCount;
+    private List<TicketCountDto> ticketsCountOverTime;
 }

@@ -1,11 +1,15 @@
 package com.pardal.app.service.tickets;
 
 import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.dto.DashboardFilterDto;
+import com.pardal.app.entity.dto.TicketCountDto;
+import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.repository.specification.MetricsSpecifications;
-import com.pardal.app.service.tickets.TicketsServiceImpl;
 import com.pardal.app.util.Gambiarra;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,9 +22,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -37,26 +41,27 @@ class TicketsServiceImplTest {
     @InjectMocks
     private TicketsServiceImpl ticketsService;
 
+    private DashboardFilterDto testFilters;
+
+    @BeforeEach
+    void setUp() {
+        // Initialize testFilters before each test
+        testFilters = new DashboardFilterDto();
+        testFilters.setProductId(1);
+        testFilters.setCustomerId(100);
+        testFilters.setStartDate(LocalDateTime.now().minusDays(7));
+        testFilters.setEndDate(LocalDateTime.now());
+        testFilters.setPeriods(GroupingPeriods.DAY);
+    }
+
     @Test
     @DisplayName("Should return count when all filters are provided")
     void getTicketsCount_whenAllFiltersAreProvided_shouldReturnCount() {
         long expectedCount = 15L;
-        Integer productId = 1;
-        Integer clientId = 100;
-        LocalDateTime dateMin = LocalDateTime.now().minusDays(10);
-        LocalDateTime dateMax = LocalDateTime.now();
-
-        when(metricsSpecifications.hasProductId(any())).thenReturn(mock(Specification.class));
-        when(metricsSpecifications.hasClientId(any())).thenReturn(mock(Specification.class));
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
-        long actualCount = ticketsService.getTicketsCount(
-                Optional.of(productId),
-                Optional.of(clientId),
-                Optional.of(dateMin),
-                Optional.of(dateMax)
-        );
+        long actualCount = ticketsService.getTicketsCount(testFilters);
 
         assertEquals(expectedCount, actualCount);
         verify(ticketRepository, times(1)).count(any(Specification.class));
@@ -66,14 +71,12 @@ class TicketsServiceImplTest {
     @DisplayName("Should return total count when no filters are provided")
     void getTicketsCount_whenNoFiltersAreProvided_shouldReturnCount() {
         long expectedCount = 250L;
+
+        DashboardFilterDto emptyFilters = new DashboardFilterDto();
+
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
-        long actualCount = ticketsService.getTicketsCount(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
-        );
+        long actualCount = ticketsService.getTicketsCount(emptyFilters);
 
         assertEquals(expectedCount, actualCount);
         verify(ticketRepository, times(1)).count(any(Specification.class));
@@ -83,19 +86,14 @@ class TicketsServiceImplTest {
     @DisplayName("Should return count when a subset of filters is provided")
     void getTicketsCount_whenSomeFiltersAreProvided_shouldReturnCount() {
         long expectedCount = 42L;
-        Integer clientId = 123;
-        LocalDateTime dateMin = LocalDateTime.parse("2025-09-01T00:00:00");
 
-        when(metricsSpecifications.hasClientId(any())).thenReturn(mock(Specification.class));
+        DashboardFilterDto partialFilters = new DashboardFilterDto();
+        partialFilters.setCustomerId(123);
+        partialFilters.setStartDate(LocalDateTime.parse("2025-09-01T00:00:00"));
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
-        long actualCount = ticketsService.getTicketsCount(
-                Optional.empty(),
-                Optional.of(clientId),
-                Optional.of(dateMin),
-                Optional.empty()
-        );
+        long actualCount = ticketsService.getTicketsCount(partialFilters);
 
         assertEquals(expectedCount, actualCount);
         verify(ticketRepository, times(1)).count(any(Specification.class));
@@ -105,21 +103,60 @@ class TicketsServiceImplTest {
     @DisplayName("Should return zero when repository finds no matching tickets")
     void getTicketsCount_whenRepositoryReturnsZero_shouldReturnZero() {
         long expectedCount = 0L;
-        Integer productId = 999;
-
-        when(metricsSpecifications.hasProductId(any())).thenReturn(mock(Specification.class));
 
         when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
 
-        long actualCount = ticketsService.getTicketsCount(
-                Optional.of(productId),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
-        );
+        long actualCount = ticketsService.getTicketsCount(testFilters);
 
         assertEquals(expectedCount, actualCount);
         verify(ticketRepository, times(1)).count(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("getTicketsCount - should handle null filters gracefully")
+    void getTicketsCount_whenNullFilters_shouldHandleGracefully() {
+        long expectedCount = 0L;
+
+        when(ticketRepository.count(any(Specification.class))).thenReturn(expectedCount);
+
+        long actualCount = ticketsService.getTicketsCount(null);
+
+        assertEquals(expectedCount, actualCount);
+        verify(ticketRepository, times(1)).count(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("getTicketCountByPeriod - should return grouped ticket counts")
+    void getTicketCountByPeriod_shouldReturnGroupedCounts() {
+        Tickets ticket1 = new Tickets();
+        ticket1.setCreatedAt(Instant.parse("2025-09-15T10:00:00Z"));
+
+        Tickets ticket2 = new Tickets();
+        ticket2.setCreatedAt(Instant.parse("2025-09-15T14:00:00Z"));
+
+        Tickets ticket3 = new Tickets();
+        ticket3.setCreatedAt(Instant.parse("2025-09-16T09:00:00Z"));
+
+        List<Tickets> mockTickets = List.of(ticket1, ticket2, ticket3);
+
+        when(ticketRepository.findAll(any(Specification.class))).thenReturn(mockTickets);
+
+        List<TicketCountDto> result = ticketsService.getTicketCountByPeriod(testFilters);
+
+        assertNotNull(result);
+        verify(ticketRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("getTicketCountByPeriod - should return empty list when no tickets found")
+    void getTicketCountByPeriod_whenNoTickets_shouldReturnEmptyList() {
+        when(ticketRepository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
+
+        List<TicketCountDto> result = ticketsService.getTicketCountByPeriod(testFilters);
+
+        assertNotNull(result);
+        assertEquals(0, result.size());
+        verify(ticketRepository, times(1)).findAll(any(Specification.class));
     }
 
     @Test
@@ -145,7 +182,6 @@ class TicketsServiceImplTest {
         Double averageTime = ticketsService.getAverageTicketClosureTimeInHours(Specification.where(null));
 
         assertEquals(3.5, averageTime);
-
         verify(ticketRepository).findAll(any(Specification.class));
     }
 
@@ -158,7 +194,23 @@ class TicketsServiceImplTest {
         Double averageTime = ticketsService.getAverageTicketClosureTimeInHours(Specification.where(null));
 
         assertEquals(0.0, averageTime);
-
         verify(ticketRepository).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("getTicketsCountGroupedByProduct - should return grouped product counts")
+    void getTicketsCountGroupedByProduct_shouldReturnGroupedCounts() {
+        // Mock the repository response
+        when(ticketRepository.getTicketsCountGroupedByProduct())
+                .thenReturn(List.of(
+                        new TicketsByProductsCountDto(1, "Product A", 10L),
+                        new TicketsByProductsCountDto(2, "Product B", 5L)
+                ));
+
+        List<TicketsByProductsCountDto> result = ticketsService.getTicketsCountGroupedByProduct();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(ticketRepository, times(1)).getTicketsCountGroupedByProduct();
     }
 }

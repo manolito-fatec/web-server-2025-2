@@ -1,22 +1,18 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.service.tickets.TicketsService;
+import com.pardal.app.entity.dto.DashboardFilterDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.pardal.app.service.metrics.MetricsService;
 
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
@@ -24,7 +20,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MetricsController {
 
-    private final TicketsService ticketsService;
     private final MetricsService metricsService;
 
     @Operation(summary = "Busca dados de filtro de forma paginada", description = "Retorna uma lista paginada de dados de filtro com base nos parâmetros 'page' e 'size'.")
@@ -64,29 +59,12 @@ public class MetricsController {
     })
     @GetMapping("/chart")
     public ResponseEntity<?> getAllChartData(
-            @Parameter(description = "Id do produto", example = "1")
-            @RequestParam(name = "productId", required = false)
-            Integer productId,
-
-            @Parameter(description = "Id do cliente", example = "1")
-            @RequestParam(name="customerId", required = false)
-            Integer customerId,
-
-            @Parameter(description = "Data de inicio", example = "2025-09-15T13:45:30")
-            @RequestParam(name = "fromDate", required = false)
-            LocalDateTime fromDate,
-
-            @Parameter(description = "Data de final", example = "2025-09-15T13:45:30")
-            @RequestParam(name="toDate", required = false)
-            LocalDateTime toDate
+            @Parameter(description = "Dto de filtro com dados de productId, customerId, startDate, endDate e período de agrupamento.")
+            @RequestParam(name = "filterDto", required = false)
+            DashboardFilterDto filters
     ){
         try {
-            return ResponseEntity.ok().body(metricsService.getAllChartData(
-                    Optional.ofNullable(productId),
-                    Optional.ofNullable(customerId),
-                    Optional.ofNullable(fromDate),
-                    Optional.ofNullable(toDate)
-                    )
+            return ResponseEntity.ok().body(metricsService.getAllChartData(filters)
             );
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

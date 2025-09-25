@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class TicketsCountByDateCountDto {
-    private LocalDate date;
+public class TicketCountDto  {
+    private String period;
     private Long totalTickets;
 }
