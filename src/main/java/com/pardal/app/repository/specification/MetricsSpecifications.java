@@ -1,5 +1,6 @@
 package com.pardal.app.repository.specification;
 
+import com.pardal.app.entity.Product;
 import com.pardal.app.entity.SlaPlan;
 import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
@@ -126,6 +127,31 @@ public class MetricsSpecifications {
             );
 
             return cb.and(closedAtIsNotNull, resolutionTimeIsMet);
+        };
+    }
+
+   /**
+    * Selects the product ID, product name, and the total count of tickets per product.
+    *
+    * @author Paulo Arantes 
+    * @return a specification projecting product information with the number of tickets associated.
+    */
+    @Gambiarra(autor = "Paulo Arantes", descricao = "Colocado dentro do MetricsSpecification para uso no front, MUDAR PARA TICKETS SPECIFICATION DEPOIS", data = "2025/09/24")
+    public static Specification<Tickets> findTicketsByProduct() {
+        return (root, query, cb) -> {
+
+            Join<Tickets, Product> product = root.join("product");
+
+            query.multiselect(
+                    product.get("id").alias("productId"),
+                    product.get("name").alias("productName"),
+                    cb.count(root.get("id")).alias("totalTickets")
+            );
+
+            query.groupBy(product.get("id"), product.get("name"));
+            query.orderBy(cb.asc(product.get("name")));
+
+            return cb.conjunction();
         };
     }
 
