@@ -3,7 +3,6 @@ package com.pardal.app.service.metrics;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
-import java.util.Set;
 
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.entity.dto.DashboardFilterDto;

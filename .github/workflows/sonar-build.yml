@@ -1,11 +1,13 @@
-name: SonarQube
+name: Sonar Qube
 on:
   push:
     branches:
       - '*'
+      - '!main'
   pull_request:
     branches:
       - '*'
+      - '!main'
 jobs:
   build:
     name: Build and analyze
