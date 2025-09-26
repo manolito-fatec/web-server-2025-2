@@ -17,7 +17,7 @@ def configurar_logger():
 
     log = logging.getLogger()
 
-    log.setLevel(logging.DEBUG)
+    log.setLevel(logging.INFO)
 
     if not log.handlers:
         handler_console = logging.StreamHandler(sys.stdout)

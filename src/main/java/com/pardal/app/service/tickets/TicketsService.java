@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface TicketsService {
     long getTicketsCount(DashboardFilterDto filters);
 
-    List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct();
+    List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct(Specification<Tickets> baseSpec);
 
     double getSlaCompliantPercentage(Specification<Tickets> baseSpec);
   

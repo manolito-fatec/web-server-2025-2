@@ -9,7 +9,7 @@ import time
 import logging
 from config.setup_mongo import setup_audit_logs
 from etl.pipeline import AnonymizationPipeline
-
+from etl.scheduler import scheduler_loop
 log = logging.getLogger(__name__)
 
 if __name__ == "__main__":
@@ -23,5 +23,4 @@ if __name__ == "__main__":
     log.warning("WARNING: This script will make permanent changes to the database.")
     time.sleep(3)
 
-    pipeline = AnonymizationPipeline()
-    pipeline.run()
+    scheduler_loop()

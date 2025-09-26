@@ -10,18 +10,20 @@ import com.pardal.app.repository.specification.MetricsSpecifications;
 
 import com.pardal.app.repository.specification.TicketsSpecification;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,8 +33,7 @@ public class TicketsServiceImpl implements TicketsService {
     private TicketRepository ticketRepository;
 
     @Autowired
-    private MetricsSpecifications metricsSpecifications;
-
+    private EntityManager entityManager;
     /**
      * Calculates the number of tickets based on the provided filters.
      * <p>
@@ -69,8 +70,27 @@ public class TicketsServiceImpl implements TicketsService {
      * and the total number of tickets associated with it
      */
     @Override
-    public List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct() {
-        return ticketRepository.getTicketsCountGroupedByProduct();
+    public List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct(Specification<Tickets> baseSpec) {
+        Specification<Tickets> productCountSpec = baseSpec.and(MetricsSpecifications.findTicketsByProduct());
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+        Root<Tickets> root = query.from(Tickets.class);
+
+        Predicate predicate = productCountSpec.toPredicate(root, query, cb);
+        if (predicate != null) {
+            query.where(predicate);
+        }
+
+        List<Tuple> tuples =entityManager.createQuery(query).getResultList();
+
+        return tuples.stream()
+                .map(p -> new TicketsByProductsCountDto(
+                        p.get("productId", Integer.class),
+                        p.get("productName", String.class),
+                        p.get("totalTickets", Long.class)))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -91,7 +111,7 @@ public class TicketsServiceImpl implements TicketsService {
 
         return ((double) slaCompliantTickets / totalTickets) * 100.0;
     }
-  
+
     @Override
     public Double getAverageTicketClosureTimeInHours(Specification<Tickets> baseSpec) {
         Specification<Tickets> finalSpec = Specification.where(baseSpec).and(MetricsSpecifications.isClosed());

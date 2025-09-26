@@ -39,9 +39,11 @@ services:
   etl-service:
     build:
       context: ./etl-python
-    restart: 'no'
+    restart: 'unless-stopped'
     env_file:
       - .env
+    environment:
+      - TZ=America/Sao_Paulo
     depends_on:
       db:
         condition: service_healthy

@@ -96,7 +96,7 @@ public class MetricsServiceImpl implements MetricsService
         ChartDto response = new ChartDto();
         response.setRecidivismRate(getReopenedTicket(pFilters));
         response.setTicketsCount(ticketsService.getAllTicketsCount(baseSpec));
-        response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct());
+        response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct(baseSpec));
         response.setSlaCompliancePercentualDto(ticketsService.getSlaCompliantPercentage(baseSpec));
         response.setTicketClosureTimeInHours(ticketsService.getAverageTicketClosureTimeInHours(baseSpec));
         response.setTicketsCountOverTime(ticketsService.getTicketCountByPeriod(pFilters));
@@ -122,6 +122,13 @@ public class MetricsServiceImpl implements MetricsService
     {
         long totalOfTickets = ticketsService.getTicketsCount(pFilters);
 
+        if(totalOfTickets == 0)
+        {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = BigDecimal.valueOf(totalOfTickets);
+
         Specification<TicketStatusHistory> reopenedSpec =
                 Specification.where(metricsSpecifications.isReOpened())
                              .and(metricsSpecifications.joinWithTicket(
@@ -133,9 +140,6 @@ public class MetricsServiceImpl implements MetricsService
         long totalOfTicketsReopened = ticketStatusHistoryRepository.count(reopenedSpec);
 
         BigDecimal reopened = BigDecimal.valueOf(totalOfTicketsReopened);
-        BigDecimal total = (totalOfTickets == 0)
-                 ? BigDecimal.ZERO 
-                 : BigDecimal.valueOf(totalOfTickets);
 
         return reopened
                 .divide(total, 6, RoundingMode.HALF_UP)
