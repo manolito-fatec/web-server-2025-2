@@ -1,4 +1,4 @@
-name: Sonar Qube
+name: SonarQube
 on:
   push:
     branches:
@@ -52,3 +52,11 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: update
           SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect  
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=manolito-fatec_web-server-2025-2
+
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          pollingTimeoutSec: 600
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  
