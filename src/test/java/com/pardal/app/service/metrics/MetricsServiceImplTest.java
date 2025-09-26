@@ -161,5 +161,4 @@ class MetricsServiceImplTest
 
         assertEquals(BigDecimal.ZERO.setScale(6), result);
     }
-
 }

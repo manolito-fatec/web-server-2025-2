@@ -163,20 +163,4 @@ public class MetricsServiceImpl implements MetricsService
         }
         return spec;
     }
-
-     public String getUserName(String user) {
-        // Bug: pode lançar NullPointerException
-        return user.toUpperCase(); 
-    }
-
-    public void process() {
-        // Code smell: método muito longo e repetição de código
-        String a = "Hello " + getUserName(null); // concatenação perigosa
-        String b = "Hello " + getUserName(null); // código duplicado
-        String c = "Hello " + getUserName(null); // mais duplicação
-
-        System.out.println(a);
-        System.out.println(b);
-        System.out.println(c);
-    }
 }
