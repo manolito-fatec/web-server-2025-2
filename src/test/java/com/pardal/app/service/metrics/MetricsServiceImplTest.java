@@ -162,9 +162,4 @@ class MetricsServiceImplTest
         assertEquals(BigDecimal.ZERO.setScale(6), result);
     }
 
-    @Test
-    void test_test()
-    {
-        var password = "123";
-    }
 }
