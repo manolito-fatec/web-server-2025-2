@@ -3,6 +3,7 @@ package com.pardal.app.service.metrics;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Optional;
 
 import com.pardal.app.entity.Tickets;
