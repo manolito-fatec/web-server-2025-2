@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class ChartDto
 {
     private BigDecimal recidivismRate;
+    private Long ticketsCount;
     private List<TicketsByProductsCountDto> ticketsCountGroupedByProduct;
     private double slaCompliancePercentualDto;
     private Double ticketClosureTimeInHours;

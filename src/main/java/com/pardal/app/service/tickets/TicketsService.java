@@ -21,4 +21,6 @@ public interface TicketsService {
     Double getAverageTicketClosureTimeInHours(Specification<Tickets> baseSpec);
 
     List<TicketCountDto> getTicketCountByPeriod(DashboardFilterDto filters);
+
+    Long getAllTicketsCount(Specification<Tickets> baseSpec);
 }

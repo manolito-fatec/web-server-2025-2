@@ -143,4 +143,8 @@ public class TicketsServiceImpl implements TicketsService {
     private String formatDate(java.time.Instant date, DateTimeFormatter formatter) {
         return formatter.format(java.time.LocalDateTime.ofInstant(date, java.time.ZoneId.systemDefault()));
     }
+
+    public Long getAllTicketsCount(Specification<Tickets> baseSpec) {
+        return ticketRepository.count(baseSpec);
+    }
 }
