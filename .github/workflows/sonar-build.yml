@@ -9,6 +9,15 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ${{ secrets.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: ${{secrets.DB_NAME}}
+        ports:
+          - 5432:5432 
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,5 +49,5 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: update
           SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect  
         run: mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-              -Dsonar.projectKey=manolito-fatec_web-server-2025-2 \
-              -DskipTests
+          -Dsonar.projectKey=manolito-fatec_web-server-2025-2 \
+          -DskipTests
