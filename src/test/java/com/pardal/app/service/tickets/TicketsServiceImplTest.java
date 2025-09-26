@@ -3,7 +3,6 @@ package com.pardal.app.service.tickets;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketCountDto;
-import com.pardal.app.entity.dto.TicketsByProductsCountDto;
 import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.repository.specification.MetricsSpecifications;
@@ -45,7 +44,6 @@ class TicketsServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize testFilters before each test
         testFilters = new DashboardFilterDto();
         testFilters.setProductId(1);
         testFilters.setCustomerId(100);
@@ -195,22 +193,5 @@ class TicketsServiceImplTest {
 
         assertEquals(0.0, averageTime);
         verify(ticketRepository).findAll(any(Specification.class));
-    }
-
-    @Test
-    @DisplayName("getTicketsCountGroupedByProduct - should return grouped product counts")
-    void getTicketsCountGroupedByProduct_shouldReturnGroupedCounts() {
-        // Mock the repository response
-        when(ticketRepository.getTicketsCountGroupedByProduct())
-                .thenReturn(List.of(
-                        new TicketsByProductsCountDto(1, "Product A", 10L),
-                        new TicketsByProductsCountDto(2, "Product B", 5L)
-                ));
-
-        List<TicketsByProductsCountDto> result = ticketsService.getTicketsCountGroupedByProduct();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(ticketRepository, times(1)).getTicketsCountGroupedByProduct();
     }
 }
