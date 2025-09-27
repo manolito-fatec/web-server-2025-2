@@ -7,8 +7,6 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - ./dump/dump-BANCO_POPULADO_V2-202509112035.sql:/docker-entrypoint-initdb.d/dump.sql
     ports:
       - "5432:5432"
 
@@ -44,11 +42,15 @@ services:
       - .env
     environment:
       - TZ=America/Sao_Paulo
+    volumes:
+      - ./dump:/app/dump
     depends_on:
       db:
         condition: service_healthy
       mongo:
         condition: service_healthy
+
+    command: /bin/bash -c "./config/restore_db.sh && python -u main.py"
 
     deploy:
       resources:
