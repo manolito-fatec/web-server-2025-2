@@ -60,14 +60,6 @@ public class Tickets {
     @JoinColumn(name = "sla_plan_id", nullable = false)
     private SlaPlan slaPlan;
 
-    @Size(max = 200)
-    @NotNull
-    @Column(name = "title", nullable = false, length = 200)
-    private String title;
-
-    @Column(name = "description", length = Integer.MAX_VALUE)
-    private String description;
-
     @Size(max = 40)
     @Column(name = "channel", length = 40)
     private String channel;

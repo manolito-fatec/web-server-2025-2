@@ -32,10 +32,6 @@ public class AuditLog {
     @Column(name = "operation", nullable = false, length = 20)
     private String operation;
 
-    @Size(max = 120)
-    @Column(name = "performed_by", length = 120)
-    private String performedBy;
-
     @Column(name = "performed_at")
     private Instant performedAt;
 

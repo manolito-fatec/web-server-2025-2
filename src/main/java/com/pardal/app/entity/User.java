@@ -22,23 +22,6 @@ public class User {
     @JoinColumn(name = "company_id")
     private Company company;
 
-    @Size(max = 120)
-    @NotNull
-    @Column(name = "full_name", nullable = false, length = 120)
-    private String fullName;
-
-    @Size(max = 254)
-    @Column(name = "email", length = 254)
-    private String email;
-
-    @Size(max = 40)
-    @Column(name = "phone", length = 40)
-    private String phone;
-
-    @Size(max = 32)
-    @Column(name = "cpf", length = 32)
-    private String cpf;
-
     @Column(name = "created_at")
     private Instant createdAt;
 
