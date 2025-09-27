@@ -18,19 +18,6 @@ public class Agent {
     @Column(name = "agent_id", nullable = false)
     private Integer id;
 
-    @Size(max = 120)
-    @NotNull
-    @Column(name = "full_name", nullable = false, length = 120)
-    private String fullName;
-
-    @Size(max = 254)
-    @Column(name = "email", length = 254)
-    private String email;
-
-    @Size(max = 40)
-    @Column(name = "phone", length = 40)
-    private String phone;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;

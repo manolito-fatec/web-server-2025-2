@@ -35,10 +35,6 @@ public class TicketInteraction {
     @JoinColumn(name = "author_agent_id")
     private Agent authorAgent;
 
-    @NotNull
-    @Column(name = "message", nullable = false, length = Integer.MAX_VALUE)
-    private String message;
-
     @Column(name = "is_public")
     private Boolean isPublic;
 
