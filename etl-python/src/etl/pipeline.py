@@ -169,20 +169,6 @@ class AnonymizationPipeline:
 
             log.info(f"{len(records)} records were updated in table '{table_name}'.")
 
-            with pg_conn.cursor() as update_cursor:
-                for record in records:
-                    pk_value = record.pop('pk_value')
-                    set_clause = ", ".join([f'"{col}" = %s' for col in record.keys()])
-                    values = list(record.values())
-
-                    update_query = f'UPDATE "{table_name}" SET {set_clause} WHERE "{pk_column}" = %s'
-                    update_cursor.execute(update_query, values + [pk_value])
-
-                    logger.log_individual_update(settings.DB_NAME, table_name, pk_value)
-                    self.total_anonymized += 1
-
-            log.info(f"{len(records)} records were updated in table '{table_name}'.")
-
     def _log_final_summary(self):
         """Connects to MongoDB only to log the final summary."""
         try:

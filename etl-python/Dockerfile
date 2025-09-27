@@ -10,6 +10,13 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends python3.11 python3.11-venv python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg curl ca-certificates && \
+    curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update && \
+    apt-get install -y postgresql-client-17 && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN python3.11 -m venv /opt/venv
 
 ENV PATH="/opt/venv/bin:$PATH"

@@ -8,11 +8,14 @@ import sys
 import time
 import logging
 from config.setup_mongo import setup_audit_logs
-from etl.pipeline import AnonymizationPipeline
 from etl.scheduler import scheduler_loop
+from config.setup_log import configurar_logger
+
 log = logging.getLogger(__name__)
 
 if __name__ == "__main__":
+
+    configurar_logger()
 
     try:
         setup_audit_logs()
