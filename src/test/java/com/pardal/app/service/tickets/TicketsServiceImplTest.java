@@ -5,8 +5,6 @@ import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketCountDto;
 import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
-import com.pardal.app.repository.specification.MetricsSpecifications;
-import com.pardal.app.util.Gambiarra;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,10 +27,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TicketsServiceImplTest {
-
-    @Mock
-    @Gambiarra(descricao = "injetado para evitar null pointers nos testes. o ideal é Specifications ter métodos estáticos", autor = "AndreWakugawa")
-    private MetricsSpecifications metricsSpecifications;
 
     @Mock
     private TicketRepository ticketRepository;
