@@ -15,8 +15,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -30,16 +31,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class TicketsServiceImpl implements TicketsService {
 
-    @Autowired
-    private TicketRepository ticketRepository;
-
-    @Autowired
-    private TicketStatusHistoryRepository ticketStatusHistoryRepository;
-
-    @Autowired
-    private EntityManager entityManager;
+    private final TicketRepository ticketRepository;
+    private final TicketStatusHistoryRepository ticketStatusHistoryRepository;
+    private final EntityManager entityManager;
 
     /**
      * Calculates the number of tickets based on the provided filters.
