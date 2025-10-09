@@ -5,7 +5,6 @@ import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketCountDto;
 import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
-import com.pardal.app.repository.specification.TicketsSpecification;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;

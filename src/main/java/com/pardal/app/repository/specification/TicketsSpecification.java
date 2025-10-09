@@ -18,7 +18,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
 public class TicketsSpecification {
+
+    private static final String PRODUCT = "product";
+    private static final String PRODUCT_NAME = "productName";
+    private static final String PRODUCT_ID = "productId";
+    private static final String COMPANY = "company";
+    private static final String ID = "id";
+    private static final String CREATED_AT = "createdAt";
+    private static final String CLOSED_AT = "closedAt";
+    private static final String TICKETS = "tickets";
+    private static final String TOTAL_TICKETS = "totalTickets";
+    private static final String FROM_STATUS = "fromStatus";
+    private static final String SLA_PLAN = "slaPlan";
+    private static final String RESOLUTION_MINS = "resolutionMins";
+    private static final String NAME = "name";
+    private static final Integer RE_OPENED_STATUS = 5;
+
+
 
     public static Specification<Tickets> withDateRangeAndFilters(DashboardFilterDto pFilters) {
 
@@ -30,21 +48,21 @@ public class TicketsSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             if (pFilters.getProductId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("product").get("id"), pFilters.getProductId()));
+                predicates.add(criteriaBuilder.equal(root.get(PRODUCT).get(ID), pFilters.getProductId()));
             }
 
             if (pFilters.getCustomerId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("company").get("id"), pFilters.getCustomerId()));
+                predicates.add(criteriaBuilder.equal(root.get(COMPANY).get(ID), pFilters.getCustomerId()));
             }
 
             if (pFilters.getFromDate() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
-                        root.get("createdAt"), pFilters.getFromDate().toInstant(ZoneOffset.UTC)));
+                        root.get(CREATED_AT), pFilters.getFromDate().toInstant(ZoneOffset.UTC)));
             }
 
             if (pFilters.getToDate() != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(
-                        root.get("createdAt"), pFilters.getToDate().toInstant(ZoneOffset.UTC)));
+                        root.get(CREATED_AT), pFilters.getToDate().toInstant(ZoneOffset.UTC)));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -58,27 +76,27 @@ public class TicketsSpecification {
             Optional<LocalDateTime> pToDate) {
 
         return (root, query, criteriaBuilder) -> {
-            Join<TicketStatusHistory, Tickets> ticketJoin = root.join("tickets");
+            Join<TicketStatusHistory, Tickets> ticketJoin = root.join(TICKETS);
             List<Predicate> predicates = new ArrayList<>();
 
             if (pProductId.isPresent())
             {
-                predicates.add(criteriaBuilder.equal(ticketJoin.get("product").get("id"), pProductId.get()));
+                predicates.add(criteriaBuilder.equal(ticketJoin.get(PRODUCT).get(ID), pProductId.get()));
             }
 
             if (pCustomerId.isPresent()) {
-                predicates.add(criteriaBuilder.equal(ticketJoin.get("company").get("id"), pCustomerId.get()));
+                predicates.add(criteriaBuilder.equal(ticketJoin.get(COMPANY).get(ID), pCustomerId.get()));
             }
 
             if (pFromDate.isPresent())
             {
                 pFromDate.get().toInstant(ZoneOffset.UTC);
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(ticketJoin.get("createdAt"), pFromDate.get().toInstant(ZoneOffset.UTC)));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(ticketJoin.get(CREATED_AT), pFromDate.get().toInstant(ZoneOffset.UTC)));
             }
 
             if (pToDate.isPresent())
             {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(ticketJoin.get("createdAt"), pToDate.get().toInstant(ZoneOffset.UTC)));
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(ticketJoin.get(CREATED_AT), pToDate.get().toInstant(ZoneOffset.UTC)));
             }
 
             query.distinct(true);
@@ -86,11 +104,9 @@ public class TicketsSpecification {
         };
     }
 
-
-
     public static Specification<TicketStatusHistory> isReOpened() {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("fromStatus").get("id"), 5);
+                criteriaBuilder.equal(root.get(FROM_STATUS).get(ID), RE_OPENED_STATUS);
     }
 
     /**
@@ -109,18 +125,18 @@ public class TicketsSpecification {
      */
     public static Specification<Tickets> isSlaMet() {
         return (root, query, cb) -> {
-            Join<Tickets, SlaPlan> slaPlanJoin = root.join("slaPlan");
+            Join<Tickets, SlaPlan> slaPlanJoin = root.join(SLA_PLAN);
 
-            Predicate closedAtIsNotNull = cb.isNotNull(root.get("closedAt"));
+            Predicate closedAtIsNotNull = cb.isNotNull(root.get(CLOSED_AT));
 
             HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
             var timestampDiff = hcb.durationByUnit(
                     TemporalUnit.MINUTE,
-                    hcb.durationBetween(root.get("closedAt"),root.get("createdAt"))
+                    hcb.durationBetween(root.get(CLOSED_AT),root.get(CREATED_AT))
             );
             Predicate resolutionTimeIsMet = cb.lessThanOrEqualTo(
                     timestampDiff,
-                    slaPlanJoin.get("resolutionMins")
+                    slaPlanJoin.get(RESOLUTION_MINS)
             );
 
             return cb.and(closedAtIsNotNull, resolutionTimeIsMet);
@@ -136,16 +152,16 @@ public class TicketsSpecification {
     public static Specification<Tickets> findTicketsByProduct() {
         return (root, query, cb) -> {
 
-            Join<Tickets, Product> product = root.join("product");
+            Join<Tickets, Product> product = root.join(PRODUCT);
 
             query.multiselect(
-                    product.get("id").alias("productId"),
-                    product.get("name").alias("productName"),
-                    cb.count(root.get("id")).alias("totalTickets")
+                    product.get(ID).alias(PRODUCT_ID),
+                    product.get(NAME).alias(PRODUCT_NAME),
+                    cb.count(root.get(ID)).alias(TOTAL_TICKETS)
             );
 
-            query.groupBy(product.get("id"), product.get("name"));
-            query.orderBy(cb.asc(product.get("name")));
+            query.groupBy(product.get(ID), product.get(NAME));
+            query.orderBy(cb.asc(product.get(NAME)));
 
             return cb.conjunction();
         };
@@ -163,7 +179,7 @@ public class TicketsSpecification {
      */
     public static Specification<Tickets> isClosed() {
         return (root, query, criteriaBuilder) ->
-            criteriaBuilder.isNotNull(root.get("closedAt"));
+            criteriaBuilder.isNotNull(root.get(CLOSED_AT));
     }
 
 }
