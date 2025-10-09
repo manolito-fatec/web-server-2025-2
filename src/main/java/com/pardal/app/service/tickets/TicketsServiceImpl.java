@@ -3,11 +3,11 @@ package com.pardal.app.service.tickets;
 import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketCountDto;
 import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
-import com.pardal.app.repository.specification.MetricsSpecifications;
-
+import com.pardal.app.repository.TicketStatusHistoryRepository;
 import com.pardal.app.repository.specification.TicketsSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
@@ -20,10 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,7 +36,11 @@ public class TicketsServiceImpl implements TicketsService {
     private TicketRepository ticketRepository;
 
     @Autowired
+    private TicketStatusHistoryRepository ticketStatusHistoryRepository;
+
+    @Autowired
     private EntityManager entityManager;
+
     /**
      * Calculates the number of tickets based on the provided filters.
      * <p>
@@ -71,7 +78,7 @@ public class TicketsServiceImpl implements TicketsService {
      */
     @Override
     public List<TicketsByProductsCountDto> getTicketsCountGroupedByProduct(Specification<Tickets> baseSpec) {
-        Specification<Tickets> productCountSpec = baseSpec.and(MetricsSpecifications.findTicketsByProduct());
+        Specification<Tickets> productCountSpec = baseSpec.and(TicketsSpecification.findTicketsByProduct());
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
@@ -106,7 +113,7 @@ public class TicketsServiceImpl implements TicketsService {
             return 0.0;
         }
 
-        Specification<Tickets> slaCompliantSpec = baseSpec.and(MetricsSpecifications.isSlaMet());
+        Specification<Tickets> slaCompliantSpec = baseSpec.and(TicketsSpecification.isSlaMet());
         long slaCompliantTickets = ticketRepository.count(slaCompliantSpec);
 
         return ((double) slaCompliantTickets / totalTickets) * 100.0;
@@ -114,7 +121,7 @@ public class TicketsServiceImpl implements TicketsService {
 
     @Override
     public Double getAverageTicketClosureTimeInHours(Specification<Tickets> baseSpec) {
-        Specification<Tickets> finalSpec = Specification.where(baseSpec).and(MetricsSpecifications.isClosed());
+        Specification<Tickets> finalSpec = Specification.where(baseSpec).and(TicketsSpecification.isClosed());
 
         List<Tickets> closedTickets = ticketRepository.findAll(finalSpec);
 
@@ -133,6 +140,12 @@ public class TicketsServiceImpl implements TicketsService {
         return TicketsSpecification.withDateRangeAndFilters(pFilters);
     }
 
+    /**
+     * Gets the number of tickets grouped by period based on the given filters.
+     * @author Andre
+     * @param filters filters with date range and period settings
+     * @return a list of {@link TicketCountDto} with ticket counts by period
+     */
     public List<TicketCountDto> getTicketCountByPeriod(DashboardFilterDto filters) {
 
         Specification<Tickets> filterSpec = TicketsSpecification.withDateRangeAndFilters(filters);
@@ -164,7 +177,56 @@ public class TicketsServiceImpl implements TicketsService {
         return formatter.format(java.time.LocalDateTime.ofInstant(date, java.time.ZoneId.systemDefault()));
     }
 
+    /**
+     * Returns the total number of {@link Tickets} matching the given specification.
+     * @author Caue
+     * @param baseSpec the {@link Specification} used to filter tickets
+     * @return the total count of matching {@link Tickets}
+     */
     public Long getAllTicketsCount(Specification<Tickets> baseSpec) {
         return ticketRepository.count(baseSpec);
+    }
+
+    /**
+     * Calculates the recidivism rate of tickets (percentage of reopened tickets) based on the provided filters.
+     * <p>
+     * This method retrieves the total number of tickets and the number of reopened tickets within the specified
+     * product, customer, and date range filters. It then calculates the ratio of reopened tickets to total tickets.
+     * </p>
+     *
+     * @author paulo
+     * @param pFilters  the DTO with information of the product, the customer,
+     *                  the start date of the time range,
+     *                  the end date of the time range
+     *                  and the period to filter by (all of them are nullable, optional filters);
+     * @return the recidivism rate as a {@code Double}, representing the proportion of reopened tickets
+     *         relative to the total number of tickets; returns {@code 0.0} if there are no tickets
+     */
+    public BigDecimal getReopenedTicket(DashboardFilterDto pFilters)
+    {
+        long totalOfTickets = getTicketsCount(pFilters);
+
+        if(totalOfTickets == 0)
+        {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = BigDecimal.valueOf(totalOfTickets);
+
+        Specification<TicketStatusHistory> reopenedSpec =
+                Specification.where(TicketsSpecification.isReOpened())
+                             .and(TicketsSpecification.joinWithTicketStatusHistory(
+                                     Optional.ofNullable(pFilters.getProductId()),
+                                     Optional.ofNullable(pFilters.getCustomerId()),
+                                     Optional.ofNullable(pFilters.getFromDate()),
+                                     Optional.ofNullable(pFilters.getToDate())));
+
+        long totalOfTicketsReopened = ticketStatusHistoryRepository.count(reopenedSpec);
+
+        BigDecimal reopened = BigDecimal.valueOf(totalOfTicketsReopened);
+
+        return reopened
+                .divide(total, 6, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
     }
 }
