@@ -1,6 +1,5 @@
 package com.pardal.app.service.tickets;
 
-import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketCountDto;
