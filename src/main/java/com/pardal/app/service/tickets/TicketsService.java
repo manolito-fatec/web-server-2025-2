@@ -5,6 +5,7 @@ import com.pardal.app.entity.dto.DashboardFilterDto;
 import com.pardal.app.entity.dto.TicketCountDto;
 import com.pardal.app.entity.dto.TicketsByProductsCountDto;
 import com.pardal.app.enums.GroupingPeriods;
+import com.pardal.app.entity.dto.TicketsBySubcategoryCountDto;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
@@ -23,4 +24,6 @@ public interface TicketsService {
     List<TicketCountDto> getTicketCountByPeriod(DashboardFilterDto filters);
 
     Long getAllTicketsCount(Specification<Tickets> baseSpec);
+
+    List<TicketsBySubcategoryCountDto> getCountSubcategory(Specification<Tickets> baseSpec);
 }
