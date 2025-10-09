@@ -36,6 +36,9 @@ public class TicketsSpecification {
     private static final String NAME = "name";
     private static final Integer RE_OPENED_STATUS = 5;
 
+     private TicketsSpecification() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
 
     public static Specification<Tickets> withDateRangeAndFilters(DashboardFilterDto pFilters) {
