@@ -1,9 +1,5 @@
 package com.pardal.app.service.metrics;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Optional;
-
 import com.pardal.app.entity.Tickets;
 import com.pardal.app.entity.dto.DashboardFilterDto;
 import org.springframework.data.domain.Page;
@@ -14,13 +10,11 @@ import org.springframework.stereotype.Service;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;
-import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.dto.ChartDto;
 import com.pardal.app.entity.dto.FilterDataDto;
 import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
-import com.pardal.app.repository.TicketStatusHistoryRepository;
-import com.pardal.app.repository.specification.MetricsSpecifications;
+import com.pardal.app.repository.specification.TicketsSpecification;
 import com.pardal.app.service.tickets.TicketsService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,8 +26,6 @@ public class MetricsServiceImpl implements MetricsService
     private final CompanyRepository companyRepository;
     private final ProductRepository productRepository;
     private final TicketsService ticketsService;
-    private final TicketStatusHistoryRepository ticketStatusHistoryRepository;
-    private final MetricsSpecifications metricsSpecifications;
 
     /**
      * Retrieves a paginated DTO containing lists of companies and products.
@@ -94,7 +86,7 @@ public class MetricsServiceImpl implements MetricsService
         Specification<Tickets> baseSpec = buildTicketSpecificationFromFilters(pFilters);
 
         ChartDto response = new ChartDto();
-        response.setRecidivismRate(getReopenedTicket(pFilters));
+        response.setRecidivismRate(ticketsService.getReopenedTicket(pFilters));
         response.setTicketsCount(ticketsService.getAllTicketsCount(baseSpec));
         response.setTicketsCountGroupedByProduct(ticketsService.getTicketsCountGroupedByProduct(baseSpec));
         response.setSlaCompliancePercentualDto(ticketsService.getSlaCompliantPercentage(baseSpec));
@@ -104,63 +96,14 @@ public class MetricsServiceImpl implements MetricsService
     }
 
     /**
-     * Calculates the recidivism rate of tickets (percentage of reopened tickets) based on the provided filters.
-     * <p>
-     * This method retrieves the total number of tickets and the number of reopened tickets within the specified
-     * product, customer, and date range filters. It then calculates the ratio of reopened tickets to total tickets.
-     * </p>
+     * Creates a {@link Specification} for {@link Tickets} using the given filters.
      *
-     * @author paulo
-     * @param pFilters  the DTO with information of the product, the customer,
-     *                  the start date of the time range,
-     *                  the end date of the time range
-     *                  and the period to filter by (all of them are nullable, optional filters);
-     * @return the recidivism rate as a {@code Double}, representing the proportion of reopened tickets
-     *         relative to the total number of tickets; returns {@code 0.0} if there are no tickets
+     * @author Caue 
+     * @param pFilters filters with date range and other criteria
+     * @return a {@link Specification} for filtering {@link Tickets}
      */
-    protected BigDecimal getReopenedTicket(DashboardFilterDto pFilters)
-    {
-        long totalOfTickets = ticketsService.getTicketsCount(pFilters);
-
-        if(totalOfTickets == 0)
-        {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal total = BigDecimal.valueOf(totalOfTickets);
-
-        Specification<TicketStatusHistory> reopenedSpec =
-                Specification.where(metricsSpecifications.isReOpened())
-                             .and(metricsSpecifications.joinWithTicket(
-                                     Optional.ofNullable(pFilters.getProductId()),
-                                     Optional.ofNullable(pFilters.getCustomerId()),
-                                     Optional.ofNullable(pFilters.getFromDate()),
-                                     Optional.ofNullable(pFilters.getToDate())));
-
-        long totalOfTicketsReopened = ticketStatusHistoryRepository.count(reopenedSpec);
-
-        BigDecimal reopened = BigDecimal.valueOf(totalOfTicketsReopened);
-
-        return reopened
-                .divide(total, 6, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
-    }
-
     private Specification<Tickets> buildTicketSpecificationFromFilters(DashboardFilterDto pFilters) {
-        Specification<Tickets> spec = Specification.where(null);
-
-        if (pFilters.getProductId() != null) {
-            spec = spec.and(metricsSpecifications.hasProductId(pFilters.getProductId()));
-        }
-        if (pFilters.getCustomerId() != null) {
-            spec = spec.and(metricsSpecifications.hasClientId(pFilters.getCustomerId()));
-        }
-        if (pFilters.getFromDate() != null) {
-            spec = spec.and(metricsSpecifications.hasDateAfter(pFilters.getFromDate()));
-        }
-        if (pFilters.getToDate() != null) {
-            spec = spec.and(metricsSpecifications.hasDateBefore(pFilters.getToDate()));
-        }
-        return spec;
+        return TicketsSpecification.withDateRangeAndFilters(pFilters);
     }
+
 }
