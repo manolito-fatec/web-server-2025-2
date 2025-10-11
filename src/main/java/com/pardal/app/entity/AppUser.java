@@ -29,7 +29,7 @@ public class AppUser implements UserDetails {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "usr_email", nullable = false, unique = true) // Adicionado unique = true
+    @Column(name = "usr_email", nullable = false, unique = true)
     private String email;
 
     @Size(max = 15)
