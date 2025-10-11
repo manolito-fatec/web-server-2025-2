@@ -3,12 +3,15 @@ package com.pardal.app.service.appUser;
 import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.repository.AppUserRepository;
+import com.pardal.app.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -17,6 +20,7 @@ import java.util.Optional;
 public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
     private final AppUserRepository appUserRepository;
+    private final UserRepository userRepository;
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -29,6 +33,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
      * @return the converted user DTO
      * @see AppUserDto
      */
+    @Override
     public AppUserDto convertUserToDto(AppUser appUser) {
         return AppUserDto.builder()
                 .id(appUser.getId())
@@ -50,14 +55,13 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
      * @param id the ID of the user to retrieve (must not be null)
      * @return the user DTO containing user information
      * @throws NoSuchElementException if no user is found with the given ID
-     * @see AppUserDto
-     *
-     * @example
-     * <pre>{@code
+     * @example <pre>{@code
      * // Get user with ID 123
      * AppUserDto user = appUserService.getUserById(123);
      * }</pre>
+     * @see AppUserDto
      */
+    @Override
     public AppUserDto getUserById(Integer id) {
         Optional<AppUser> user = appUserRepository.findById(id);
         if (user.isEmpty()) {
@@ -91,5 +95,34 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
         return user.get();
+    }
+
+    /**
+     * Retrieves all users in the system.
+     * <p>
+     * This method fetches all users from the repository and converts them to DTOs.
+     * </p>
+     *
+     * @return a list of user DTOs
+     * @throws NoSuchElementException if no users exist in the system
+     * @see AppUserDto
+     *
+     * @example
+     * <pre>{@code
+     * // Get all users
+     * List<AppUserDto> users = userService.getAllUsers();
+     * }</pre>
+     */
+    @Override
+    public List<AppUserDto> getAllUsers() {
+        List<AppUser> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            throw new NoSuchElementException("No users found");
+        }
+        List<AppUserDto> userDtos = new ArrayList<>();
+        for (AppUser user : users) {
+            userDtos.add(convertUserToDto(user));
+        }
+        return userDtos;
     }
 }
