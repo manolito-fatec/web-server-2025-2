@@ -13,8 +13,10 @@ CREATE TABLE app_users (
                            usr_email VARCHAR(255) UNIQUE NOT NULL,
                            usr_phone VARCHAR(15) NOT NULL,
                            rl_id int NOT NULL DEFAULT 1,
-                           usr_expire_date date DEFAULT NULL,
                            usr_pwd VARCHAR(255) ,
+                           usr_email_verified BOOLEAN DEFAULT FALSE,
+                           usr_expire_date date DEFAULT NULL,
+                           usr_verification_token VARCHAR(255) DEFAULT NULL,
 
                            CONSTRAINT usr_id_pk primary key (usr_id),
                            CONSTRAINT rl_id_fk FOREIGN KEY (rl_id)
