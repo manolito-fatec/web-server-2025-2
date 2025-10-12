@@ -1,7 +1,11 @@
 package com.pardal.app.repository;
 
 import com.pardal.app.entity.AppRole;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.Repository;
 
-public interface AppRoleRepository extends Repository<AppRole, Long> {
+import java.util.Set;
+
+public interface AppRoleRepository extends JpaRepository<AppRole, Long> {
+    Set<AppRole> findById(Integer id);
 }

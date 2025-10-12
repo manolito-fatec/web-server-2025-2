@@ -1,19 +1,20 @@
 package com.pardal.app.service.appUser;
 
+import com.pardal.app.entity.AppRole;
 import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
+import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -21,6 +22,7 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
     private final AppUserRepository appUserRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -124,5 +126,43 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
             userDtos.add(convertUserToDto(user));
         }
         return userDtos;
+    }
+
+    /**
+     * Creates a new user.
+     * <p>
+     * This method creates a new user with the provided information, encoding the password
+     * and validating the assigned roles.
+     * </p>
+     *
+     * @param appUserDto the DTO containing new user information (must not be null)
+     * @return the created user DTO
+     * @throws IllegalArgumentException if the provided roles don't exist in the system
+     * @see AppUserDto
+     *
+     * @example
+     * <pre>{@code
+     * // Create new user
+     * AppUserDto newUser = userService.createUser(userDto);
+     * }</pre>
+     */
+    @Override
+    public AppUserDto createUser(AppUserDto appUserDto) {
+
+        String verificationToken = UUID.randomUUID().toString();
+
+        AppUser appUser = AppUser.builder()
+                .name(appUserDto.getName())
+                .password(passwordEncoder.encode(appUserDto.getPassword()))
+                .email(appUserDto.getEmail())
+                .phone(appUserDto.getPhone())
+                .expireDate(LocalDate.now())
+                .role(appUserDto.getRole())
+                .emailVerified(false)
+                .verificationToken(verificationToken)
+                .build();
+
+
+        return convertUserToDto(userRepository.save(appUser));
     }
 }

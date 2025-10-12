@@ -12,4 +12,5 @@ public interface AppUserService {
     public AppUserDto getUserById(Integer id) throws UsernameNotFoundException;
     public AppUserDto convertUserToDto(AppUser appUser);
     public List<AppUserDto> getAllUsers();
+    public AppUserDto createUser(AppUserDto appUserDto);
 }

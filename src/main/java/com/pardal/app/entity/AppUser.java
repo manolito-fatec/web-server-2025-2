@@ -3,7 +3,10 @@ package com.pardal.app.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +17,9 @@ import java.util.Collections;
 
 @Data
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "app_users", schema = "pardal")
 public class AppUser implements UserDetails {
 
@@ -49,6 +55,12 @@ public class AppUser implements UserDetails {
     @Column(name = "usr_pwd")
     private String password;
 
+    @Column(name = "usr_email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(name = "usr_verification_token")
+    private String verificationToken;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (this.role == null) {
@@ -79,6 +91,6 @@ public class AppUser implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.emailVerified;
     }
 }

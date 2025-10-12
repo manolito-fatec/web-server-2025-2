@@ -1,11 +1,9 @@
 package com.pardal.app.repository;
 
 import com.pardal.app.entity.AppUser;
-import com.pardal.app.entity.User;
-import org.springframework.data.repository.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface UserRepository extends Repository<User, Integer> {
-    List<AppUser> findAll();
+public interface UserRepository extends JpaRepository<AppUser, Integer> {
 }
