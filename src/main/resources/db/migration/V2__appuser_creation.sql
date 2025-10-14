@@ -5,7 +5,9 @@ CREATE TABLE app_role (
     CONSTRAINT rl_id_pk primary key (rl_id)
 );
 
-INSERT INTO app_role (rl_name) values ('Admin');
+INSERT INTO app_role (rl_id,rl_name) values (0,'Admin');
+INSERT INTO app_role (rl_id,rl_name) values (1,'Manager');
+INSERT INTO app_role (rl_id,rl_name) values (2,'Operator');
 
 CREATE TABLE app_users (
                            usr_id serial,
