@@ -1,35 +1,35 @@
 package com.pardal.app.mail;
 
-import com.mailersend.sdk.MailerSend;
-import com.mailersend.sdk.MailerSendResponse;
-import com.mailersend.sdk.emails.Email;
-import com.mailersend.sdk.exceptions.MailerSendException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+
 
 public class EmailService {
 
-    public void sendValidationEmail(String recipient, String token){
-        String baseUrl = "https://sua-api.com";
+
+    private JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String sender;
+
+    public String sendValidationEmail(String recipient, String token) {
+        String baseUrl = "https://localhost:8080";
         String verificationUrl = baseUrl + "/api/auth/verify?token=" + token;
 
         String subject = "Confirmação de Cadastro";
         String content = "Olá, clique no link abaixo para confirmar seu e-mail:\n" + verificationUrl;
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setText(content);
+        message.setTo("caueherobrine@gmail.com");
+        message.setFrom(sender);
 
-        try{
-            MailerSend ms = new MailerSend();
-            ms.setToken("");
-
-            Email email = new Email();
-            email.subject = subject;
-            email.text = content;
-            email.addRecipient(recipient,recipient);
-            email.setFrom("Pardal team", "no-reply@test-y7zpl98q6r045vx6.mlsender.net");
-
-            MailerSendResponse response = ms.emails().send(email);
-
-
-
-        } catch (MailerSendException e) {
-            throw new RuntimeException(e);
+        try {
+            mailSender.send(message);
+            return "Email sent successfully!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error sending email.";
         }
     }
 }
