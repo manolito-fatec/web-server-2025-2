@@ -3,6 +3,7 @@ package com.pardal.app.service.appUser;
 import com.pardal.app.entity.AppRole;
 import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
+import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
@@ -21,8 +22,10 @@ import java.util.*;
 public class AppUserServiceImpl implements AppUserService, UserDetailsService {
 
     private final AppUserRepository appUserRepository;
+    private final AppRoleRepository appRoleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -157,11 +160,13 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
                 .email(appUserDto.getEmail())
                 .phone(appUserDto.getPhone())
                 .expireDate(LocalDate.now())
-                .role(appUserDto.getRole())
+                .role(appRoleRepository.getAppRoleById(2))
                 .emailVerified(false)
                 .verificationToken(verificationToken)
                 .build();
 
+        AppUser newUser = userRepository.save(appUser);
+        emailService.sendValidationEmail(newUser.getEmail(), newUser.getPassword());
 
         return convertUserToDto(userRepository.save(appUser));
     }
