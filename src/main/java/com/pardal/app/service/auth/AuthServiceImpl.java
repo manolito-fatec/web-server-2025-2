@@ -1,28 +1,23 @@
 package com.pardal.app.service.auth;
 
-import ch.qos.logback.classic.encoder.JsonEncoder;
-import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.entity.dto.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.SignupRequestDto;
 import com.pardal.app.repository.AppRoleRepository;
-import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.service.appUser.AppUserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Set;
-
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private PasswordEncoder passwordEncoder;
-    private AppUserService appUserService;
+    private final AppUserService appUserService;
     private AppRoleRepository appRoleRepository;
+
     /**
      * Handles the user signup process by validating the input request,
      * creating a new {@link ApplicationUser}, saving it to the repository,
@@ -41,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
         validateRequest(request);
 
         AppUserDto appUserDto = AppUserDto.builder()
+                .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .password(request.getPassword())
