@@ -29,16 +29,16 @@ class InsightsGenerator:
         self.sao_paulo_tz = ZoneInfo("America/Sao_Paulo")
         self.files_processed_count = 0
 
-    def _prepare_context(self, df_produto):
+    def _prepare_context(self, df_product):
         """Prepares the raw text from the tickets for the LLM."""
-        contexto_textual = ""
-        for _, row in df_produto.iterrows():
-            contexto_textual += f"--- Subcategoria: {row['subcategory_name']} ---\n"
-            contexto_textual += f"Título: {row['title']}\n"
-            contexto_textual += f"Descrição: {row['description']}\n"
-        return contexto_textual
+        textual_context = ""
+        for _, row in df_product.iterrows():
+            textual_context += f"--- Subcategoria: {row['subcategory_name']} ---\n"
+            textual_context += f"Título: {row['title']}\n"
+            textual_context += f"Descrição: {row['description']}\n"
+        return textual_context
 
-    def _create_prompt(self, contexto, company, product, stats):
+    def _create_prompt(self, context, company_id, company, product_id, product, stats):
         """Creates a prompt with statistics for the API."""
         return f"""
         Você é um Product Manager, com foco em análise de dados para tomada de decisão.
@@ -58,7 +58,9 @@ class InsightsGenerator:
         **Formato da Resposta:**
         Sua resposta DEVE ser um objeto JSON válido, sem nenhum texto ou formatação adicional. A estrutura deve ser a seguinte:
         {{
+          "company_id": {company_id},
           "company_name": "{company}",
+          "product_id": {product_id},
           "product_name": "{product}",
           "insights": [
             {{
@@ -80,7 +82,7 @@ class InsightsGenerator:
         }}
     
         **Dados Brutos dos Chamados para Análise Qualitativa:**
-        {contexto}
+        {context}
         """
 
     def execute(self):
@@ -98,32 +100,35 @@ class InsightsGenerator:
 
         all_insights = []
         for i, csv_file in enumerate(csv_files):
-            caminho_completo = os.path.join(input_dir, csv_file)
+            completed_path = os.path.join(input_dir, csv_file)
             log.info(f"Processing file [{i + 1}/{len(csv_files)}]: {csv_file}")
 
             try:
-                df_cliente = pd.read_csv(caminho_completo)
-                if df_cliente.empty:
+                df_client = pd.read_csv(completed_path)
+                if df_client.empty:
                     log.warning(f"File {csv_file} is empty. Skipping.")
                     continue
 
-                company_name = df_cliente.iloc[0]['company_name']
+                grouped = df_client.groupby(['company_id', 'product_id'])
 
-                for product_name in df_cliente['product_name'].unique():
+                for (company_id, product_id), df_product in grouped:
+                    company_name = df_product.iloc[0]['company_name']
+                    product_name = df_product.iloc[0]['product_name']
+
                     log.info(
-                        f"Analyzing product: '{product_name}' for company '{company_name}'...")
+                        f"Analyzing product: '{product_name}' (ID: {product_id}) for company '{company_name}' (ID: {company_id})...")
                     start_time_utc = datetime.now(timezone.utc)
 
-                    df_produto = df_cliente[df_cliente['product_name'] == product_name]
-
-                    dist = df_produto['subcategory_name'].value_counts(normalize=True)
+                    dist = df_product['subcategory_name'].value_counts(normalize=True)
                     top_themes = dist.head(self.etl_config['top_n_subcategories'])
                     stats_str = "".join([f"- {theme}: {perc:.0%}\n" for theme, perc in top_themes.items()])
 
-                    contexto = self._prepare_context(df_produto)
-                    prompt = self._create_prompt(contexto, company_name, product_name, stats_str)
+                    context = self._prepare_context(df_product)
+                    prompt = self._create_prompt(
+                        context, company_id, company_name, product_id, product_name, stats_str
+                    )
 
-                    log.info("Sending prompt to Gemini API for product")
+                    log.info(f"Sending prompt to Gemini API for product '{product_name}'...")
                     response = self.model.generate_content(prompt)
 
                     json_str = response.text.strip()[response.text.find('{'): response.text.rfind('}') + 1]

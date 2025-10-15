@@ -2,8 +2,6 @@
 Created on 10/13/2025 21:01 
 
 @author: otavio-calderan
-
-Scheduler unificado para todos os pipelines do ETL.
 """
 
 import schedule

@@ -49,6 +49,7 @@ class InsightsExtractor:
         ),
         RankedTickets AS (
             SELECT
+                co.company_id, p.product_id,
                 co.name AS company_name, p.name AS product_name, sc.name AS subcategory_name, t.title, t.description, st.name AS status_name, t.created_at,
                 cq.tickets_per_slot_quota,
                 ROW_NUMBER() OVER(PARTITION BY co.name, p.name, sc.name ORDER BY t.created_at DESC) as ticket_rank
@@ -61,7 +62,7 @@ class InsightsExtractor:
             JOIN CompanyQuota cq ON co.name = cq.company_name
             WHERE sr.rank_num <= {self.etl_config['top_n_subcategories']} AND st.name = '{self.etl_config['open_status']}'
         )
-        SELECT company_name, product_name, subcategory_name, title, description, status_name
+        SELECT company_id, product_id, company_name, product_name, subcategory_name, title, description, status_name
         FROM RankedTickets
         WHERE ticket_rank <= tickets_per_slot_quota;
         """
@@ -80,19 +81,19 @@ class InsightsExtractor:
         query = self._build_query()
 
         try:
-            df_chamados = con.execute(query).fetchdf()
+            df_tickets = con.execute(query).fetchdf()
 
-            if df_chamados.empty:
+            if df_tickets.empty:
                 log.warning("No tickets found with the specified criteria.")
                 return True
 
             output_dir = self.etl_config['input_dir']
             os.makedirs(output_dir, exist_ok=True)
-            for comp in df_chamados['company_name'].unique():
-                df_companhia = df_chamados[df_chamados['company_name'] == comp]
+            for comp in df_tickets['company_name'].unique():
+                df_company = df_tickets[df_tickets['company_name'] == comp]
                 safe_filename = str(comp).lower().replace(' ', '_').replace('/', '_') + ".csv"
                 output_path = os.path.join(output_dir, safe_filename)
-                df_companhia.to_csv(output_path, index=False, encoding='utf-8-sig')
+                df_company.to_csv(output_path, index=False, encoding='utf-8-sig')
             return True
         except Exception as e:
             log.error(f"Error during data extraction or saving: {e}")
