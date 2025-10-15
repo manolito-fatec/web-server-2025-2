@@ -17,8 +17,21 @@ DB_NAME = os.getenv("DB_NAME")
 DB_PORT = os.getenv("DB_PORT")
 
 MONGO_URI = os.getenv("MONGO_URI")
-MONGO_DATABASE = os.getenv("MONGO_DATABASE")
-MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "auditLogs")
+MONGO_LOG_DB_NAME = os.getenv("MONGO_LOG_DB_NAME")
+MONGO_LOG_COLLECTION = os.getenv("MONGO_LOG_COLLECTION", "auditLogs")
+
+MONGO_INSIGHTS_DB_NAME = os.getenv("MONGO_INSIGHTS_DB_NAME", "insights_db")
+MONGO_INSIGHTS_COLLECTION = os.getenv("MONGO_INSIGHTS_COLLECTION", "product_insights")
+
+GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+INSIGHTS_ETL_CONFIG = {
+    'input_dir': 'output/insights_data',
+    'open_status': 'Aberto',
+    'top_n_subcategories': 3,
+    'max_tickets_per_company': 1000,
+    'gemini_model': 'gemini-2.5-flash'
+}
 
 TABLES_TO_ANONYMIZE = [
     {

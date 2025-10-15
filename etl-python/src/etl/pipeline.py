@@ -74,7 +74,7 @@ class AnonymizationPipeline:
             cursor.execute(query)
 
             with MongoConnector() as mongo_client:
-                audit_collection = mongo_client[settings.MONGO_DATABASE][settings.MONGO_COLLECTION]
+                audit_collection = mongo_client[settings.MONGO_LOG_DB_NAME][settings.MONGO_LOG_COLLECTION]
                 logger = AuditLogger(audit_collection)
                 logger.log_schema_change(settings.DB_NAME, table_name, columns_to_delete)
 
@@ -157,7 +157,7 @@ class AnonymizationPipeline:
             data_to_update.append(tuple(row_data))
 
         with MongoConnector() as mongo_client:
-            audit_collection = mongo_client[settings.MONGO_DATABASE][settings.MONGO_COLLECTION]
+            audit_collection = mongo_client[settings.MONGO_LOG_DB_NAME][settings.MONGO_LOG_COLLECTION]
             logger = AuditLogger(audit_collection)
 
             with pg_conn.cursor() as update_cursor:
@@ -173,7 +173,7 @@ class AnonymizationPipeline:
         """Connects to MongoDB only to log the final summary."""
         try:
             with MongoConnector() as mongo_client:
-                audit_collection = mongo_client[settings.MONGO_DATABASE][settings.MONGO_COLLECTION]
+                audit_collection = mongo_client[settings.MONGO_LOG_DB_NAME][settings.MONGO_LOG_COLLECTION]
                 logger = AuditLogger(audit_collection)
                 logger.log_summary(self.start_time, self.total_scanned, self.total_anonymized, self.status,
                                    self.error_info)
