@@ -1,8 +1,10 @@
 package com.pardal.app.service.auth;
 
+import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.entity.dto.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.SignupRequestDto;
+import com.pardal.app.exceptions.AppUserNotFoundException;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.service.appUser.AppUserService;
 import jakarta.transaction.Transactional;
@@ -20,9 +22,8 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * Handles the user signup process by validating the input request,
-     * creating a new {@link ApplicationUser}, saving it to the repository,
-     * creating the associated {@link Account}, and returning a simplified DTO
-     * with user details.
+     * creating a new {@link AppUser}, saving it to the repository,
+     * and returning a simplified DTO with user details.
      *
      * <p>This method is transactional to ensure that user creation and account
      * creation happen atomically.</p>
@@ -32,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
      * @throws IllegalArgumentException if the request is invalid, roles are missing/invalid, or tool is not found
      */
     @Transactional
+    @Override
     public ResponseUserCreatedDto signup(SignupRequestDto request) {
         validateRequest(request);
 
@@ -50,6 +52,26 @@ public class AuthServiceImpl implements AuthService {
                 registeredUser.getEmail(),
                 registeredUser.getRole().getRlName()
         );
+    }
+
+    @Override
+    public ResponseUserCreatedDto verify(String token) {
+        AppUser appUser = appUserService.getUser(token);
+        if (appUser == null) {
+            throw new AppUserNotFoundException("User not found with the given token");
+        }
+        appUser.setEmailVerified(true);
+        appUser.setExpireDate(null);
+
+        appUserService.updateUser(appUser);
+
+        return new ResponseUserCreatedDto(
+                appUser.getId(),
+                appUser.getName(),
+                appUser.getEmail(),
+                appUser.getRole().getRlName()
+        );
+
     }
 
     /**

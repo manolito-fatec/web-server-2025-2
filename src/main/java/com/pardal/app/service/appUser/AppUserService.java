@@ -6,8 +6,6 @@ import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -166,5 +164,14 @@ public class AppUserService implements UserDetailsService {
         emailService.sendValidationEmail(newUser.getEmail(), newUser.getPassword());
 
         return convertUserToDto(userRepository.save(appUser));
+    }
+
+    public AppUser getUser(String token) {
+        return appUserRepository.getAppUserByVerificationToken(token).get();
+    }
+
+    public AppUserDto updateUser(AppUser appUser) {
+        appUserRepository.save(appUser);
+        return convertUserToDto(appUser);
     }
 }
