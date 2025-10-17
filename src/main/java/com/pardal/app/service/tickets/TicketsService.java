@@ -1,15 +1,14 @@
 package com.pardal.app.service.tickets;
 
 import com.pardal.app.entity.Tickets;
-import com.pardal.app.entity.dto.DashboardFilterDto;
-import com.pardal.app.entity.dto.TicketCountDto;
-import com.pardal.app.entity.dto.TicketsByProductsCountDto;
-import com.pardal.app.entity.dto.TicketsBySubcategoryCountDto;
+import com.pardal.app.entity.dto.metrics.DashboardFilterDto;
+import com.pardal.app.entity.dto.metrics.TicketCountDto;
+import com.pardal.app.entity.dto.metrics.TicketsByProductsCountDto;
+import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 public interface TicketsService {
     long getTicketsCount(DashboardFilterDto filters);

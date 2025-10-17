@@ -1,10 +1,9 @@
-package com.pardal.app.repository.specification;
+package com.pardal.app.repository.specification.tickets;
 
 import com.pardal.app.entity.Product;
 import com.pardal.app.entity.SlaPlan;
 import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
-import com.pardal.app.entity.dto.DashboardFilterDto;
 
 import jakarta.persistence.criteria.*;
 
@@ -41,12 +40,12 @@ public class TicketsSpecification {
     }
 
 
-    public static Specification<Tickets> withDateRangeAndFilters(DashboardFilterDto pFilters) {
+    public static Specification<Tickets> withDateRangeAndFilters(TicketsFilters pFilters) {
 
         return filterOptionalParams(pFilters);
     }
 
-    private static Specification<Tickets> filterOptionalParams(DashboardFilterDto pFilters) {
+    private static Specification<Tickets> filterOptionalParams(TicketsFilters pFilters) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 

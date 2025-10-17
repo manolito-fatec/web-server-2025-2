@@ -1,4 +1,4 @@
-package com.pardal.app.entity.dto;
+package com.pardal.app.entity.dto.metrics;
 
 import java.math.BigDecimal;
 import java.util.List;

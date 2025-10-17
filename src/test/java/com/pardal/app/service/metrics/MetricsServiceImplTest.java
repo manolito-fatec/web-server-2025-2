@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import com.pardal.app.entity.dto.DashboardFilterDto;
+import com.pardal.app.entity.dto.metrics.DashboardFilterDto;
 import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.service.tickets.TicketsServiceImpl;
@@ -29,7 +29,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;
-import com.pardal.app.entity.dto.FilterDataDto;
+import com.pardal.app.entity.dto.metrics.FilterMetricsDataDto;
 import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
 import com.pardal.app.repository.TicketStatusHistoryRepository;
@@ -87,7 +87,7 @@ class MetricsServiceImplTest
     }
 
     @Test
-    @DisplayName("Should return FilterDataDto when valid page and size are provided")
+    @DisplayName("Should return FilterMetricsDataDto when valid page and size are provided")
     void getFilterData_whenValidPageAndSize_shouldReturnDto() {
         int page = 1;
         int pageSize = 10;
@@ -96,7 +96,7 @@ class MetricsServiceImplTest
         when(companyRepository.findAll(pageable)).thenReturn(companyPage);
         when(productRepository.findAll(pageable)).thenReturn(productPage);
 
-        FilterDataDto result = metricsService.getFilterData(page, pageSize);
+        FilterMetricsDataDto result = metricsService.getFilterData(page, pageSize);
 
         assertNotNull(result);
         assertEquals(companyPage, result.getCompanies());

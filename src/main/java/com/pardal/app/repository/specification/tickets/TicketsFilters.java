@@ -1,6 +1,5 @@
-package com.pardal.app.entity.dto;
+package com.pardal.app.repository.specification.tickets;
 
-import com.pardal.app.enums.GroupingPeriods;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,10 +7,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class DashboardFilterDto {
+public class TicketsFilters {
     private Integer productId;
     private Integer customerId;
     private LocalDateTime fromDate;
     private LocalDateTime toDate;
-    private GroupingPeriods periods;
 }
