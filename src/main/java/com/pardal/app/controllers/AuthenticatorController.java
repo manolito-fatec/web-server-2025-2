@@ -29,5 +29,18 @@ public class AuthenticatorController {
     public ResponseEntity<ResponseUserCreatedDto> signup(@RequestBody SignupRequestDto request) {
         ResponseUserCreatedDto response = authService.signup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    };
+
+    @Operation(summary = "Valida o usuário criado via o token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuário validado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor na validação de usuário.")
+    })
+    @PostMapping("/verify")
+    public ResponseEntity<ResponseUserCreatedDto> verify(@RequestBody String token) {
+        ResponseUserCreatedDto response = authService.verify(token);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
