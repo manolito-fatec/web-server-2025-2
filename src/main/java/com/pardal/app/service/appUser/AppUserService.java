@@ -161,13 +161,14 @@ public class AppUserService implements UserDetailsService {
                 .build();
 
         AppUser newUser = userRepository.save(appUser);
-        emailService.sendValidationEmail(newUser.getEmail(), newUser.getPassword());
+        emailService.sendValidationEmail(newUser.getEmail(), newUser.getVerificationToken());
 
         return convertUserToDto(userRepository.save(appUser));
     }
 
     public AppUser getUser(String token) {
-        return appUserRepository.getAppUserByVerificationToken(token).get();
+        Optional<AppUser> appuser = appUserRepository.getAppUserByVerificationToken(token);
+        return appuser.get();
     }
 
     public AppUserDto updateUser(AppUser appUser) {

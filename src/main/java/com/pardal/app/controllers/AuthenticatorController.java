@@ -40,7 +40,7 @@ public class AuthenticatorController {
     })
     @PostMapping("/verify")
     public ResponseEntity<ResponseUserCreatedDto> verify(@RequestBody String token) {
-        ResponseUserCreatedDto response = authService.verify(token);
+        ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
