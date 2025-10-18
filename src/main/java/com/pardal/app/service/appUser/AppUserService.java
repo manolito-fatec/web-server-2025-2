@@ -171,6 +171,12 @@ public class AppUserService implements UserDetailsService {
         return appuser.get();
     }
 
+    public AppUser getUserByEmail(String email) {
+        Optional<AppUser> appuser = Optional.ofNullable(appUserRepository.getAppUserByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found")));
+        return appuser.get();
+    }
+
     public AppUserDto updateUser(AppUser appUser) {
         appUserRepository.save(appUser);
         return convertUserToDto(appUser);
