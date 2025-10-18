@@ -188,7 +188,7 @@ class AppUserServiceTest {
     }
 
     @Test
-    @DisplayName("Should retrieve user by verification token")
+    @DisplayName("Should retrieve user by verification token successfully")
     void getUser_whenValidToken_shouldReturnUser() {
         when(appUserRepository.getAppUserByVerificationToken("test-token-123"))
                 .thenReturn(Optional.of(testUser));
@@ -204,7 +204,7 @@ class AppUserServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw NoSuchElementException when token not found")
+    @DisplayName("Should throw NoSuchElementException when verification token not found")
     void getUser_whenTokenNotFound_shouldThrowException() {
         when(appUserRepository.getAppUserByVerificationToken("invalid-token"))
                 .thenReturn(Optional.empty());
@@ -214,6 +214,8 @@ class AppUserServiceTest {
                 () -> appUserService.getUser("invalid-token"),
                 "Expected NoSuchElementException when token not found"
         );
+
+        assertEquals("User not found with verification token: invalid-token", thrown.getMessage());
 
         verify(appUserRepository, times(1)).getAppUserByVerificationToken("invalid-token");
     }
@@ -245,7 +247,7 @@ class AppUserServiceTest {
                 "Expected IllegalArgumentException when user not found"
         );
 
-        assertEquals("User not found", thrown.getMessage());
+        assertEquals("User not found with email: notfound@example.com", thrown.getMessage());
 
         verify(appUserRepository, times(1)).getAppUserByEmail("notfound@example.com");
     }
