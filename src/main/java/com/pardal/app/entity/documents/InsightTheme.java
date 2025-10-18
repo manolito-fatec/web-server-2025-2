@@ -1,4 +1,4 @@
-package com.pardal.app.entity;
+package com.pardal.app.entity.documents;
 
 import lombok.Data;
 
