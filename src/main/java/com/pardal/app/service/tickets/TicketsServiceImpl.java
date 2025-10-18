@@ -1,20 +1,21 @@
 package com.pardal.app.service.tickets;
 
-import com.pardal.app.entity.dto.DashboardFilterDto;
-import com.pardal.app.entity.dto.TicketCountDto;
-import com.pardal.app.entity.dto.TicketsByProductsCountDto;
+import com.pardal.app.entity.Company;
+import com.pardal.app.entity.Subcategory;
+import com.pardal.app.entity.dto.metrics.DashboardFilterDto;
+import com.pardal.app.entity.dto.metrics.TicketCountDto;
+import com.pardal.app.entity.dto.metrics.TicketsByProductsCountDto;
 import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import com.pardal.app.enums.GroupingPeriods;
 import com.pardal.app.repository.TicketRepository;
 import com.pardal.app.repository.TicketStatusHistoryRepository;
-import com.pardal.app.repository.specification.TicketsSpecification;
+import com.pardal.app.repository.specification.tickets.TicketsSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
+
 import lombok.AllArgsConstructor;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -130,6 +131,66 @@ public class TicketsServiceImpl implements TicketsService {
                 .sum();
 
         return (double) totalDurationInSeconds / closedTickets.size() / 3600.0;
+    }
+
+    /**
+     * Retrieves the count of tickets grouped by subcategory and company.
+     * <p>
+     * This method executes a JPA Criteria query to count all tickets and groups the results by
+     * **Subcategory** and **Company**, returning a list of {@code TicketsBySubcategoryCountDto} objects.
+     * Each object contains the subcategory and company information along with the corresponding ticket count.
+     * </p>
+     *
+     * @author gabriel
+     *
+     * @param baseSpec a {@code Specification<Tickets>} to apply optional filtering conditions to the query,
+     * or {@code null} to count all tickets.
+     * @return a {@code List} of {@link TicketsBySubcategoryCountDto} objects, each representing a unique
+     * combination of subcategory and company with the total number of tickets associated with it.
+     */
+    @Override
+    public List<TicketsBySubcategoryCountDto> getCountSubcategory(Specification<Tickets> baseSpec) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+        Root<Tickets> root = query.from(Tickets.class);
+
+        Join<Tickets, Subcategory> subcategoryJoin = root.join("subcategory");
+
+        Join<Tickets, Company> companyJoin = root.join("company");
+
+        query.multiselect(
+                subcategoryJoin.get("id").alias("subcategoryId"),
+                subcategoryJoin.get("name").alias("subcategoryName"),
+
+                companyJoin.get("id").alias("companyId"),
+                companyJoin.get("name").alias("companyName"),
+
+                cb.count(root).alias("totalTickets")
+        );
+
+        Predicate predicate = baseSpec.toPredicate(root, query, cb);
+        if (predicate != null) {
+            query.where(predicate);
+        }
+
+        query.groupBy(
+                subcategoryJoin.get("id"),
+                subcategoryJoin.get("name"),
+
+                companyJoin.get("id"),
+                companyJoin.get("name")
+        );
+
+        List<Tuple> tuples = entityManager.createQuery(query).getResultList();
+
+        return tuples.stream()
+                .map(t -> new TicketsBySubcategoryCountDto(
+                        t.get("subcategoryId", Integer.class),
+                        t.get("subcategoryName", String.class),
+                        t.get("companyId", Integer.class),
+                        t.get("companyName", String.class),
+                        t.get("totalTickets", Long.class)))
+                .collect(Collectors.toList());
     }
 
     private Specification<Tickets> buildSpecificationFromFilters(DashboardFilterDto pFilters) {

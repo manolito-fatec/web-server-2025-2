@@ -1,0 +1,53 @@
+package com.pardal.app.service.insights;
+
+import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.documents.TicketInsight;
+import com.pardal.app.entity.dto.insights.InsightsDataDto;
+import com.pardal.app.entity.dto.insights.InsightsFilterDto;
+import com.pardal.app.repository.InsightRepository;
+import com.pardal.app.service.tickets.TicketsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static com.pardal.app.repository.specification.tickets.util.TicketsUtil.buildTicketSpecificationFromFilters;
+
+@Service
+@RequiredArgsConstructor
+public class InsightsServiceImpl implements InsightsService {
+
+    private final TicketsService ticketsService;
+    private final InsightRepository insightRepository;
+
+    @Override
+    public InsightsDataDto getAllInsightsData(InsightsFilterDto pFilters) {
+
+        Specification<Tickets> baseSpec = buildTicketSpecificationFromFilters(pFilters);
+
+        InsightsDataDto response = new InsightsDataDto();
+
+        response.setParetoInsightData(ticketsService.getCountSubcategory(baseSpec));
+        response.setProductInsightsData(findLatestByCompanyId(pFilters.getCustomerId()));
+        // response.setAQUI(os dados dos outros cards quando ficarem prontos());
+
+        return response;
+    }
+
+    @Override
+    public List<TicketInsight> findByCompanyId(Integer companyId) {
+        return insightRepository.findByCompanyId(companyId);
+    }
+
+    private List<TicketInsight> findLatestByCompanyId(Integer companyId) {
+        List<TicketInsight> insights = insightRepository.findLatestInsightsByCompanyId(companyId);
+
+        if (insights.isEmpty()) {
+            throw new NoSuchElementException("No insights found for company ID: " + companyId);
+        }
+
+        return insights;
+    }
+}
