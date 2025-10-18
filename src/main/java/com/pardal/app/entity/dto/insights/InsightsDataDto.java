@@ -1,5 +1,6 @@
 package com.pardal.app.entity.dto.insights;
 
+import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import com.pardal.app.util.Gambiarra;
 import lombok.AllArgsConstructor;
@@ -23,7 +24,7 @@ public class InsightsDataDto {
     private Object seasonalityInsightData;
 
     // insights de produto
-    private Object productInsightsData;
+    private List<TicketInsight> productInsightsData;
 
     private List<TicketsBySubcategoryCountDto> paretoInsightData;
 }

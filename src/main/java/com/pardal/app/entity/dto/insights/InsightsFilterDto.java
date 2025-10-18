@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class InsightsFilterDto extends TicketsFilters {
     private Long clientId; // se null = todos os clientes
     // add aqui outros filtros se precisar ou tiver faltando algum

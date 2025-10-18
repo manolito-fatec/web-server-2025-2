@@ -1,9 +1,8 @@
 package com.pardal.app.repository;
 
-import com.pardal.app.entity.TicketInsight;
+import com.pardal.app.entity.documents.TicketInsight;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Aggregation;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 

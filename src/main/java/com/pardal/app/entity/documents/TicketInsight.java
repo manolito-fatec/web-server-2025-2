@@ -1,10 +1,8 @@
-package com.pardal.app.entity;
+package com.pardal.app.entity.documents;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.util.Map;
 
 import lombok.Data;
 
