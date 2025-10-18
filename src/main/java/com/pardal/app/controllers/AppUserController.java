@@ -72,5 +72,5 @@ public class AppUserController {
                 userService.updateUser(
                         userService.getUserByEmail(user.getEmail())));
     }
-    
+
 }
