@@ -1,14 +1,16 @@
 package com.pardal.app.service.auth;
 
 import com.pardal.app.entity.AppUser;
-import com.pardal.app.entity.dto.AppUserDto;
-import com.pardal.app.entity.dto.ResponseUserCreatedDto;
-import com.pardal.app.entity.dto.SignupRequestDto;
+import com.pardal.app.entity.dto.*;
 import com.pardal.app.exceptions.AppUserNotFoundException;
 import com.pardal.app.repository.AppRoleRepository;
+import com.pardal.app.service.JwtService;
 import com.pardal.app.service.appUser.AppUserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,37 @@ public class AuthServiceImpl implements AuthService {
     private PasswordEncoder passwordEncoder;
     private final AppUserService appUserService;
     private AppRoleRepository appRoleRepository;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+
+
+    /**
+     * Authenticates a user using the provided login credentials and returns a JWT token upon success.
+     *
+     * <p>The method attempts to authenticate the user using the Spring Security {@link AuthenticationManager}.
+     * If authentication is successful, it retrieves the corresponding {@link AppUser} from the repository
+     * and generates a JWT token using the {@link JwtService}.</p>
+     *
+     * @param request the {@link LoginRequestDto} containing the user's email and password
+     * @return a {@link JwtAuthenticationResponseDto} containing the generated JWT token
+     * @throws IllegalArgumentException if authentication fails or the user is not found
+     */
+    public JwtAuthenticationResponseDto login(LoginRequestDto request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()));
+
+            var user = appUserService.getUserByEmail(request.getEmail());
+
+
+            var jwt = jwtService.generateToken(user);
+            return JwtAuthenticationResponseDto.builder().token(jwt).build();
+        } catch (AuthenticationException e) {
+            throw new IllegalArgumentException("Invalid credentials", e);
+        }
+    }
 
     /**
      * Handles the user signup process by validating the input request,
