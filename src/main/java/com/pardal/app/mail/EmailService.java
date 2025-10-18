@@ -19,8 +19,8 @@ public class EmailService {
     private String sender;
 
     public String sendValidationEmail(String recipient, String token) {
-        String baseUrl = "https://localhost:8080";
-        String verificationUrl = baseUrl + "/api/auth/verify?token=" + token;
+        String baseUrl = "http://localhost:5173";
+        String verificationUrl = baseUrl + "/verify-email/" + token;
 
         String subject = "Confirmação do seu cadastro na plataforma Pardal!";
 
