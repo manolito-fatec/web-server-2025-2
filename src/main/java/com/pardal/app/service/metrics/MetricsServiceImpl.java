@@ -1,7 +1,8 @@
 package com.pardal.app.service.metrics;
 
 import com.pardal.app.entity.Tickets;
-import com.pardal.app.entity.dto.DashboardFilterDto;
+import com.pardal.app.entity.dto.metrics.DashboardFilterDto;
+import com.pardal.app.entity.dto.metrics.FilterMetricsDataDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,14 +11,14 @@ import org.springframework.stereotype.Service;
 
 import com.pardal.app.entity.Company;
 import com.pardal.app.entity.Product;
-import com.pardal.app.entity.dto.ChartDto;
-import com.pardal.app.entity.dto.FilterDataDto;
+import com.pardal.app.entity.dto.metrics.ChartDto;
 import com.pardal.app.repository.CompanyRepository;
 import com.pardal.app.repository.ProductRepository;
-import com.pardal.app.repository.specification.TicketsSpecification;
 import com.pardal.app.service.tickets.TicketsService;
 
 import lombok.RequiredArgsConstructor;
+
+import static com.pardal.app.repository.specification.tickets.util.TicketsUtil.buildTicketSpecificationFromFilters;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class MetricsServiceImpl implements MetricsService
      * Retrieves a paginated DTO containing lists of companies and products.
      * <p>
      * This method fetches paginated data for both companies and products based on the
-     * provided page number and size, combining them into a {@link FilterDataDto}.
+     * provided page number and size, combining them into a {@link FilterMetricsDataDto}.
      * </p>
      *
      * @author Cauê
@@ -39,16 +40,16 @@ public class MetricsServiceImpl implements MetricsService
      * @param pPageSize the number of items per page (must be greater than 0)
      * @return a DTO containing paginated company and product lists
      * @throws IllegalArgumentException if the page number or page size is less than 1
-     * @see FilterDataDto
+     * @see FilterMetricsDataDto
      *
      * @example
      * <pre>{@code
      * // Get the first page with 20 items per page
-     * FilterDataDto filterData = filterService.getFilterData(1, 20);
+     * FilterMetricsDataDto filterData = filterService.getFilterData(1, 20);
      * }</pre>
      */
     @Override
-    public FilterDataDto getFilterData ( int pPage, int pPageSize )
+    public FilterMetricsDataDto getFilterData (int pPage, int pPageSize )
     {
         if (pPage < 1) {
             throw new IllegalArgumentException("O número da página deve ser maior que 0");
@@ -62,7 +63,7 @@ public class MetricsServiceImpl implements MetricsService
         Page<Company> companyPage = companyRepository.findAll(pageableRequest);
         Page<Product> productPage = productRepository.findAll(pageableRequest);
 
-        return new FilterDataDto(productPage, companyPage);
+        return new FilterMetricsDataDto(productPage, companyPage);
     }
 
     /**
@@ -73,7 +74,7 @@ public class MetricsServiceImpl implements MetricsService
      * The result can be used directly by the front-end to render graphs and KPIs.
      * </p>
      *
-     *@author paulo
+     * @author paulo
      * @param pFilters  the DTO with information of the product, the customer,
      *                  the start date of the time range,
      *                  the end date of the time range
@@ -93,17 +94,6 @@ public class MetricsServiceImpl implements MetricsService
         response.setTicketClosureTimeInHours(ticketsService.getAverageTicketClosureTimeInHours(baseSpec));
         response.setTicketsCountOverTime(ticketsService.getTicketCountByPeriod(pFilters));
         return response;
-    }
-
-    /**
-     * Creates a {@link Specification} for {@link Tickets} using the given filters.
-     *
-     * @author Caue 
-     * @param pFilters filters with date range and other criteria
-     * @return a {@link Specification} for filtering {@link Tickets}
-     */
-    private Specification<Tickets> buildTicketSpecificationFromFilters(DashboardFilterDto pFilters) {
-        return TicketsSpecification.withDateRangeAndFilters(pFilters);
     }
 
 }

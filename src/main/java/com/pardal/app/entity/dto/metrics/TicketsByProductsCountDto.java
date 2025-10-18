@@ -1,4 +1,4 @@
-package com.pardal.app.entity.dto;
+package com.pardal.app.entity.dto.metrics;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
