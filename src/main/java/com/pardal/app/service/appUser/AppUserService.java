@@ -168,12 +168,17 @@ public class AppUserService implements UserDetailsService {
 
     public AppUser getUser(String token) {
         Optional<AppUser> appuser = appUserRepository.getAppUserByVerificationToken(token);
+        if (appuser.isEmpty()) {
+            throw new NoSuchElementException("User not found with verification token: " + token);
+        }
         return appuser.get();
     }
 
     public AppUser getUserByEmail(String email) {
-        Optional<AppUser> appuser = Optional.ofNullable(appUserRepository.getAppUserByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found")));
+        Optional<AppUser> appuser = appUserRepository.getAppUserByEmail(email);
+        if (appuser.isEmpty()) {
+            throw new IllegalArgumentException("User not found with email: " + email);
+        }
         return appuser.get();
     }
 
