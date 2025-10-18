@@ -20,6 +20,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Security configuration for JWT-based stateless authentication.
+ *
+ * <p>CSRF is disabled because:
+ * <ul>
+ *     <li>This is a stateless API using JWT for authentication</li>
+ *     <li>Session management is disabled ({@link SessionCreationPolicy#STATELESS})</li>
+ *     <li>JWT tokens are transmitted via Authorization header (not cookies)</li>
+ *     <li>CSRF attacks primarily target cookie-based authentication</li>
+ * </ul>
+ *
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -58,6 +70,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // CSRF is disabled safely because this is a stateless JWT-based API
+                // Sessions are not used, and tokens are sent via Authorization header
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -69,7 +83,6 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         )
-
                         .permitAll()
                         .anyRequest().authenticated()
                 )
