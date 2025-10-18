@@ -1,5 +1,7 @@
 package com.pardal.app.controllers;
 
+import com.pardal.app.entity.dto.JwtAuthenticationResponseDto;
+import com.pardal.app.entity.dto.LoginRequestDto;
 import com.pardal.app.entity.dto.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.SignupRequestDto;
 import com.pardal.app.service.auth.AuthService;
@@ -42,5 +44,17 @@ public class AuthenticatorController {
     public ResponseEntity<ResponseUserCreatedDto> verify(@RequestBody String token) {
         ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    @Operation(summary = "Login de Usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login realizado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar login.")
+    })
+    @PostMapping("/login")
+    public ResponseEntity<JwtAuthenticationResponseDto> login(@RequestBody LoginRequestDto request) {
+        JwtAuthenticationResponseDto response = authService.login(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
