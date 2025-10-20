@@ -1,8 +1,8 @@
 package com.pardal.app.service.auth;
 
-import com.pardal.app.entity.dto.JwtAuthenticationResponseDto;
-import com.pardal.app.entity.dto.LoginRequestDto;
-import com.pardal.app.entity.dto.ResponseUserCreatedDto;
+import com.pardal.app.entity.dto.auth.JwtAuthenticationResponseDto;
+import com.pardal.app.entity.dto.auth.LoginRequestDto;
+import com.pardal.app.entity.dto.auth.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.SignupRequestDto;
 
 public interface AuthService {

@@ -1,8 +1,8 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.entity.dto.JwtAuthenticationResponseDto;
-import com.pardal.app.entity.dto.LoginRequestDto;
-import com.pardal.app.entity.dto.ResponseUserCreatedDto;
+import com.pardal.app.entity.dto.auth.JwtAuthenticationResponseDto;
+import com.pardal.app.entity.dto.auth.LoginRequestDto;
+import com.pardal.app.entity.dto.auth.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.SignupRequestDto;
 import com.pardal.app.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;

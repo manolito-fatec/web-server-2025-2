@@ -5,9 +5,9 @@ import static org.mockito.Mockito.*;
 
 import com.pardal.app.entity.AppRole;
 import com.pardal.app.entity.AppUser;
-import com.pardal.app.entity.dto.JwtAuthenticationResponseDto;
-import com.pardal.app.entity.dto.LoginRequestDto;
-import com.pardal.app.entity.dto.ResponseUserCreatedDto;
+import com.pardal.app.entity.dto.auth.JwtAuthenticationResponseDto;
+import com.pardal.app.entity.dto.auth.LoginRequestDto;
+import com.pardal.app.entity.dto.auth.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.SignupRequestDto;
 import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.exceptions.AppUserNotFoundException;
