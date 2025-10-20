@@ -1,4 +1,4 @@
-package com.pardal.app.entity.dto;
+package com.pardal.app.entity.dto.auth;
 
 import lombok.*;
 
