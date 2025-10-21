@@ -17,11 +17,10 @@ class TicketForecasterExtractor:
 
     def __init__(self, forecast_config):
         self.forecast_config = forecast_config
-        # Connection string using settings
         self.conn_string = (f"dbname={settings.DB_NAME} user={settings.DB_USER} "
                             f"password={settings.DB_PASSWORD} host={settings.DB_HOST} "
                             f"port={settings.DB_PORT}")
-        self.json_list = [] # List to store all forecast results
+        self.json_list = []
 
     def _connect_to_db(self):
         """Establishes the connection to DuckDB and attaches the Postgres database."""
@@ -29,7 +28,6 @@ class TicketForecasterExtractor:
             con = duckdb.connect(database=':memory:')
             con.execute("INSTALL postgres;")
             con.execute("LOAD postgres;")
-            # Attach the Postgres DB using the connection string
             con.execute(f"ATTACH '{self.conn_string}' AS postgres_db (TYPE POSTGRES);")
             return con
         except Exception as e:
