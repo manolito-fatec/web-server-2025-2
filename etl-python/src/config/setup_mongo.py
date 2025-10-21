@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 FIVE_YEARS_IN_SECONDS = 157680000
 INSIGHTS_COLLECTION_NAME = "product_insights"
-
+TICKETS_FORECASTER_COLLECTION_NAME = "tickets_forecaster"
 
 def setup_audit_logs():
     """
@@ -94,6 +94,49 @@ def setup_product_insights():
 
     except Exception as e:
         log.error(f"\nERROR: Failed to configure MongoDB infrastructure for insights. {e}")
+    finally:
+        if mongo_client:
+            mongo_client.close()
+            log.info("\nMongoDB connection closed.")
+
+def setup_tickets_forecaster():
+    """
+    Ensures that the 'product_insights' collection and its indexes in MongoDB exist according to the design.
+    """
+    mongo_client = None
+    try:
+        mongo_client = MongoClient(settings.MONGO_URI)
+        db = mongo_client[settings.MONGO_INSIGHTS_DB_NAME]
+        log.debug(f"Successfully connected to the database '{settings.MONGO_INSIGHTS_DB_NAME}'.")
+
+        if TICKETS_FORECASTER_COLLECTION_NAME not in db.list_collection_names():
+                db.create_collection(TICKETS_FORECASTER_COLLECTION_NAME)
+                log.info(f"Collection '{TICKETS_FORECASTER_COLLECTION_NAME}' created in the database.")
+        log.info(f"\nSetting up the collection '{TICKETS_FORECASTER_COLLECTION_NAME}'...")
+        forecaster_collection = db[TICKETS_FORECASTER_COLLECTION_NAME]
+
+        log.info("Creating primary index by company and date (companyId, dth)...")
+        forecaster_collection.create_index([("companyId", 1), ("dth", -1)])
+
+        log.info("Creating secondary index by product and date (productId, dth)...")
+        forecaster_collection.create_index([("productId", 1), ("dth", -1)])
+
+        log.info(f"Creating/verifying TTL retention index ({FIVE_YEARS_IN_SECONDS} seconds)...")
+        try:
+            forecaster_collection.create_index([("dth", 1)], expireAfterSeconds=FIVE_YEARS_IN_SECONDS)
+        except OperationFailure as e:
+            if "expireAfterSeconds differs" in str(e):
+                log.warning("TTL index already exists with a different value. Recreating...")
+                forecaster_collection.drop_index("dth_1")
+                forecaster_collection.create_index([("dth", 1)], expireAfterSeconds=FIVE_YEARS_IN_SECONDS)
+                log.info("TTL index successfully recreated.")
+            elif "index with same options exists" not in str(e):
+                raise e
+
+        log.info(f"Collection '{TICKETS_FORECASTER_COLLECTION_NAME}' successfully configured.")
+
+    except Exception as e:
+        log.error(f"\nERROR: Failed to configure MongoDB infrastructure for forecaster. {e}")
     finally:
         if mongo_client:
             mongo_client.close()
