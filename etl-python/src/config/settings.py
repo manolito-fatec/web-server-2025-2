@@ -22,8 +22,15 @@ MONGO_LOG_COLLECTION = os.getenv("MONGO_LOG_COLLECTION", "auditLogs")
 
 MONGO_INSIGHTS_DB_NAME = os.getenv("MONGO_INSIGHTS_DB_NAME", "insights_db")
 MONGO_INSIGHTS_COLLECTION = os.getenv("MONGO_INSIGHTS_COLLECTION", "product_insights")
+MONGO_FORECASTER_COLLECTION = os.getenv("MONGO_FORECASTER_COLLECTION", "tickets_forecaster")
+
 
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+INSIGHTS_TICKETS_FORECASTER_ETL_CONFIG = {
+    'model_path':'models/modelo_prophet.pkl',
+    'forecast_periods': 12
+}
 
 INSIGHTS_ETL_CONFIG = {
     'input_dir': 'output/insights_data',

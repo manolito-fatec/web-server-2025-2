@@ -7,10 +7,11 @@ Created on 10/13/2025 21:01
 import schedule
 import time
 import logging
-
+from config import settings
 from .pipeline import AnonymizationPipeline
 from .backup import DatabaseBackup
 from .insights.pipeline import InsightsPipeline
+from .forecast.pipeline import TicketForecasterPipeline
 
 log = logging.getLogger(__name__)
 
@@ -44,6 +45,15 @@ def run_insights_job():
     except Exception as e:
         log.error(f"JOB FAILED: Insights pipeline job failed with a critical error: {e}", exc_info=True)
 
+def run_tickets_forecaster_job():
+    """Runs the complete insight generation pipeline."""
+    try:
+        log.info("JOB INITIATED: Insights Tikcets forecaster generation pipeline...")
+        pipeline = TicketForecasterPipeline(settings.INSIGHTS_TICKETS_FORECASTER_ETL_CONFIG)
+        pipeline.run()
+        log.info("JOB COMPLETED: Tickets forecaster generation pipeline finished successfully.")
+    except Exception as e:
+        log.error(f"JOB FAILED: Tickets forecaster job failed with a critical error: {e}", exc_info=True)
 
 def start_scheduler_loop():
     """Configures and starts the main scheduler loop for all jobs."""
@@ -52,12 +62,15 @@ def start_scheduler_loop():
     log.info("Performing initial run of all jobs on startup...")
     run_anonymization_job()
     run_insights_job()
-
+    run_tickets_forecaster_job()
     schedule.every().day.at("03:00").do(run_anonymization_job)
     log.info("JOB SCHEDULED: Anonymization pipeline will run daily at 03:00 AM.")
 
     schedule.every().monday.at("04:00").do(run_insights_job)
     log.info("JOB SCHEDULED: Insights pipeline will run every Monday at 04:00 AM.")
+
+    schedule.every().day.at("05:00").do(run_tickets_forecaster_job)
+    log.info("JOB SCHEDULED: Forecaster pipeline will run daily at 05:00 AM.")
 
     log.info("Scheduler is now running. Waiting for pending jobs...")
     while True:
