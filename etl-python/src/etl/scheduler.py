@@ -12,6 +12,7 @@ from .pipeline import AnonymizationPipeline
 from .backup import DatabaseBackup
 from .insights.pipeline import InsightsPipeline
 from .forecast.pipeline import TicketForecasterPipeline
+from .sla_prediction.pipeline import SlaPredictionPipeline
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +56,16 @@ def run_tickets_forecaster_job():
     except Exception as e:
         log.error(f"JOB FAILED: Tickets forecaster job failed with a critical error: {e}", exc_info=True)
 
+def run_sla_predictions_job():
+    """Runs the SLA prediction pipeline."""
+    try:
+        log.info("JOB INITIATED: SLA predictions pipeline...")
+        pipeline = SlaPredictionPipeline(settings.SLA_PREDICTIONS_ETL_CONFIG)
+        pipeline.run()
+        log.info("JOB COMPLETED: SLA predictions pipeline finished successfully.")
+    except Exception as e:
+        log.error(f"JOB FAILED: SLA predictions job failed with a critical error: {e}", exc_info=True)
+
 def start_scheduler_loop():
     """Configures and starts the main scheduler loop for all jobs."""
     log.info("ETL Scheduler starting up...")
@@ -63,6 +74,7 @@ def start_scheduler_loop():
     run_anonymization_job()
     run_insights_job()
     run_tickets_forecaster_job()
+    run_sla_predictions_job()
     schedule.every().day.at("03:00").do(run_anonymization_job)
     log.info("JOB SCHEDULED: Anonymization pipeline will run daily at 03:00 AM.")
 
@@ -71,6 +83,9 @@ def start_scheduler_loop():
 
     schedule.every().day.at("05:00").do(run_tickets_forecaster_job)
     log.info("JOB SCHEDULED: Forecaster pipeline will run daily at 05:00 AM.")
+
+    schedule.every().day.at("06:00").do(run_sla_predictions_job)
+    log.info("JOB SCHEDULED: SLA Predictions pipeline will run daily at 06:00 AM.")
 
     log.info("Scheduler is now running. Waiting for pending jobs...")
     while True:
