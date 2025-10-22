@@ -1,5 +1,6 @@
 package com.pardal.app.entity.dto.insights;
 
+import com.pardal.app.entity.documents.Forecaster;
 import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import com.pardal.app.util.Gambiarra;
@@ -21,7 +22,7 @@ public class InsightsDataDto {
     private Object slaInsightData;
 
     // sazonalidade
-    private Object seasonalityInsightData;
+    private List<Forecaster> seasonalityInsightData;
 
     // insights de produto
     private List<TicketInsight> productInsightsData;
