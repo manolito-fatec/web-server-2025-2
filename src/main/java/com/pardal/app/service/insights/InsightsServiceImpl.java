@@ -1,9 +1,11 @@
 package com.pardal.app.service.insights;
 
 import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.documents.Forecaster;
 import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.InsightsFilterDto;
+import com.pardal.app.repository.ForecasterRespository;
 import com.pardal.app.repository.InsightRepository;
 import com.pardal.app.service.tickets.TicketsService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class InsightsServiceImpl implements InsightsService {
 
     private final TicketsService ticketsService;
     private final InsightRepository insightRepository;
+    private final ForecasterRespository forecasterRepository;
 
     @Override
     public InsightsDataDto getAllInsightsData(InsightsFilterDto pFilters) {
@@ -31,6 +34,7 @@ public class InsightsServiceImpl implements InsightsService {
 
         response.setParetoInsightData(ticketsService.getCountSubcategory(baseSpec));
         response.setProductInsightsData(findLatestByCompanyId(pFilters.getCustomerId()));
+        response.setSeasonalityInsightData(findForecasters(pFilters.getCustomerId()));
         // response.setAQUI(os dados dos outros cards quando ficarem prontos());
 
         return response;
@@ -49,5 +53,19 @@ public class InsightsServiceImpl implements InsightsService {
         }
 
         return insights;
+    }
+
+    /**
+     * Retrieves Forecaster records based on the provided companyId.
+     *
+     * @param companyId the ID of the company to filter by (can be null)
+     * @author paulo arantes
+     * @return a list of Forecaster records matching the filter
+     */
+    private List<Forecaster> findForecasters(Integer companyId)
+    {
+        return (companyId == null)
+        ? forecasterRepository.findAllCompanies()
+        : forecasterRepository.findByCompanyId(companyId); 
     }
 }
