@@ -116,7 +116,7 @@ public class AppUserService implements UserDetailsService {
      * }</pre>
      */
     public List<AppUserDto> getAllUsers() {
-        List<AppUser> users = userRepository.findAll();
+        List<AppUser> users = userRepository.findAllByExpireDateIsNull();
         if (users.isEmpty()) {
             throw new NoSuchElementException("No users found");
         }
@@ -185,5 +185,32 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto updateUser(AppUser appUser) {
         appUserRepository.save(appUser);
         return convertUserToDto(appUser);
+    }
+
+    /**
+     * Deletes a user by their ID.
+     * <p>
+     * This method removes a user from the system after verifying their existence.
+     * </p>
+     *
+     * @param id the ID of the user to delete (must not be null)
+     * @return the DTO of the deleted user
+     * @throws NoSuchElementException if no user exists with the given ID
+     * @see AppUserDto
+     *
+     * @example
+     * <pre>{@code
+     * // Delete user with ID 123
+     * ApplicationUserDto deletedUser = userService.deleteUser(123);
+     * }</pre>
+     */
+    public AppUserDto deleteUser(Integer id) {
+        Optional<AppUser> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new NoSuchElementException("User not found");
+        }
+        user.get().setExpireDate(LocalDate.now());
+        updateUser(user.get());
+        return convertUserToDto(user.get());
     }
 }

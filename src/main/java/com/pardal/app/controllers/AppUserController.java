@@ -73,4 +73,17 @@ public class AppUserController {
                         userService.getUserByEmail(user.getEmail())));
     }
 
+    @Operation(summary = "Deleção de um Usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário deletado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "404", description = "Nenhum usuário encontrado."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
+    })
+    @DeleteMapping()
+    public ResponseEntity<AppUserDto> deleteUser(@RequestParam Integer id) {
+        return ResponseEntity.ok(userService.deleteUser(id));
+    }
+
 }
