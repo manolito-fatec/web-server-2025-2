@@ -2,6 +2,7 @@ package com.pardal.app.controllers;
 
 
 import com.pardal.app.entity.dto.AppUserDto;
+import com.pardal.app.entity.dto.UpdateUserRoleDto;
 import com.pardal.app.service.appUser.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -71,6 +72,20 @@ public class AppUserController {
         return ResponseEntity.ok(
                 userService.updateUser(
                         userService.getUserByEmail(user.getEmail())));
+    }
+
+    @Operation(summary = "Atualizar a role de um usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "404", description = "Nenhum usuário encontrado."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
+    })
+    @PostMapping("/role")
+    public ResponseEntity<AppUserDto> updateUserRole(@RequestBody UpdateUserRoleDto user) {
+        return ResponseEntity.ok(
+                userService.updateUserRole(user));
     }
 
     @Operation(summary = "Deleção de um Usuário")

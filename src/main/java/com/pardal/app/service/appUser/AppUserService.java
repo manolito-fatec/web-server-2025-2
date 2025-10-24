@@ -1,7 +1,9 @@
 package com.pardal.app.service.appUser;
 
+import com.pardal.app.entity.AppRole;
 import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
+import com.pardal.app.entity.dto.UpdateUserRoleDto;
 import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
@@ -185,6 +187,18 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto updateUser(AppUser appUser) {
         appUserRepository.save(appUser);
         return convertUserToDto(appUser);
+    }
+
+    public AppUserDto updateUserRole(UpdateUserRoleDto appUserDto) {
+        AppUser appUser = appUserRepository.findById(appUserDto.getId())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        AppRole role = appRoleRepository.getByRlName(appUserDto.getRole());
+
+        appUser.setRole(role);
+        AppUser updatedUser = appUserRepository.save(appUser);
+
+        return convertUserToDto(updatedUser);
     }
 
     /**
