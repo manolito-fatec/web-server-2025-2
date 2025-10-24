@@ -18,14 +18,14 @@ public interface SlaPredictionRepository extends MongoRepository<SlaPrediction, 
      * @return A list of the top 3 subcategories by risk for the specified company.
      */
     @Aggregation(pipeline = {
-            "{ $match: { companyId: ?0 } }",
-            "{ $group: { _id: '$companyId', maxDth: { $max: '$dth' } } }",
+            "{ $match: { company_id: ?0 } }",
+            "{ $group: { _id: '$company_Id', maxDth: { $max: '$dth' } } }",
             "{ $lookup: { " +
                     "from: 'sla_predictions', " +
                     "let: { targetCompanyId: '$_id', latestDth: '$maxDth' }, " +
                     "pipeline: [" +
                     "{ $match: { $expr: { $and: [ " +
-                    "{ $eq: ['$companyId', '$$targetCompanyId'] }, " +
+                    "{ $eq: ['$company_Id', '$$targetCompanyId'] }, " +
                     "{ $eq: ['$dth', '$$latestDth'] } " +
                     "] } } }" +
                     "], " +
