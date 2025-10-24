@@ -92,6 +92,8 @@ class SlaPredictionExtractor:
         )
         SELECT
             t.ticket_id,
+            t.company_id,
+            t.subcategory_id,
             co.name AS company_name, 
             p.name AS product_name, 
             
@@ -192,9 +194,23 @@ class SlaPredictionExtractor:
             log.info("Inference complete. Formatting results...")
 
             today = date.today().isoformat()
-            cols_to_keep = ['ticket_id', 'company_name', 'product_name', 'subcategory_name', 'sla_breach_probability']
-            if 'company_id' in df_data.columns: cols_to_keep.append('company_id')
-            if 'product_id' in df_data.columns: cols_to_keep.append('product_id')
+            cols_to_keep = [
+                'ticket_id',
+                'company_id',
+                'company_name',
+                'product_id',
+                'product_name',
+                'subcategory_id',
+                'subcategory_name',
+                'sla_breach_probability'
+            ]
+            if 'product_id' not in df_data.columns:
+                cols_to_keep.remove('product_id')
+
+            final_cols = [col for col in cols_to_keep if col in df_data.columns]
+            if len(final_cols) != len(cols_to_keep):
+                missing_output_cols = set(cols_to_keep) - set(final_cols)
+                log.warning(f"Columns intended for output JSON are missing from DataFrame: {missing_output_cols}")
 
             df_output = df_data[cols_to_keep].copy()
             df_output['dth'] = today
