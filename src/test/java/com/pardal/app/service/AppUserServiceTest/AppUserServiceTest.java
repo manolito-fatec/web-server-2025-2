@@ -159,7 +159,7 @@ class AppUserServiceTest {
 
         List<AppUser> userList = Arrays.asList(testUser, user2);
 
-        when(userRepository.findAll()).thenReturn(userList);
+        when(userRepository.findAllByExpireDateIsNull()).thenReturn(userList);
 
         List<AppUserDto> result = appUserService.getAllUsers();
 
@@ -168,13 +168,13 @@ class AppUserServiceTest {
         assertEquals("Test User", result.get(0).getName());
         assertEquals("Another User", result.get(1).getName());
 
-        verify(userRepository, times(1)).findAll();
+        verify(userRepository, times(1)).findAllByExpireDateIsNull();
     }
 
     @Test
     @DisplayName("Should throw NoSuchElementException when no users exist in system")
     void getAllUsers_whenNoUsersExist_shouldThrowException() {
-        when(userRepository.findAll()).thenReturn(Collections.emptyList());
+        when(userRepository.findAllByExpireDateIsNull()).thenReturn(Collections.emptyList());
 
         NoSuchElementException thrown = assertThrows(
                 NoSuchElementException.class,
@@ -184,7 +184,7 @@ class AppUserServiceTest {
 
         assertEquals("No users found", thrown.getMessage());
 
-        verify(userRepository, times(1)).findAll();
+        verify(userRepository, times(1)).findAllByExpireDateIsNull();
     }
 
     @Test
