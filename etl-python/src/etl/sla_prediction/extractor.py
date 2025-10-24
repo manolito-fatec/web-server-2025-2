@@ -28,8 +28,8 @@ CATEGORICAL_FEATURES_ONNX = ['is_weekend', 'subcategory_name', 'product_name', '
 
 class SlaPredictionExtractor:
     """
-    Extrai dados de tickets, carrega o modelo ONNX, gera previsões de SLA 
-    e formata os resultados. O modelo ONNX espera múltiplos inputs nomeados.
+    Extracts ticket data, loads the ONNX model, generates SLA predictions,
+    and formats the results. The ONNX model expects multiple named inputs.
     """
 
     def __init__(self, etl_config):
@@ -41,7 +41,6 @@ class SlaPredictionExtractor:
         self.onnx_input_names = []
 
     def _connect_to_db(self):
-        """Estabelece conexão DuckDB e anexa o Postgres."""
         try:
             con = duckdb.connect(database=':memory:')
             con.execute("INSTALL postgres;")
@@ -49,37 +48,37 @@ class SlaPredictionExtractor:
             con.execute(f"ATTACH '{self.conn_string}' AS postgres_db (TYPE POSTGRES);")
             return con
         except Exception as e:
-            log.error(f"Erro fatal ao conectar ou anexar o banco de dados: {e}")
+            log.error(f"Fatal error connecting or attaching the database: {e}")
             raise
 
     def _load_model(self):
-        """Carrega o modelo ONNX e obtém os nomes dos inputs e outputs."""
+        """Loads the ONNX model and gets input/output names."""
         path = self.etl_config.get('model_path')
-        log.info(f"Carregando modelo ONNX de: {path}")
+        log.info(f"Loading ONNX model from: {path}")
         try:
             session = ort.InferenceSession(path)
             self.onnx_input_names = [inp.name for inp in session.get_inputs()]
-            log.info(f"Nomes dos Inputs do Modelo ONNX: {self.onnx_input_names}")
+            log.info(f"ONNX Model Input Names: {self.onnx_input_names}")
             
             output_names = [output.name for output in session.get_outputs()]
-            log.info(f"Nomes dos Outputs do Modelo ONNX: {output_names}")
+            log.info(f"ONNX Model Output Names: {output_names}")
             
             if set(self.onnx_input_names) != set(FEATURE_COLS):
-                 log.warning("ALERTA: Nomes dos inputs no ONNX não correspondem exatamente a FEATURE_COLS!")
-                 log.warning(f"ONNX espera: {self.onnx_input_names}")
+                 log.warning("WARNING: Input names in ONNX do not exactly match FEATURE_COLS!")
+                 log.warning(f"ONNX expects: {self.onnx_input_names}")
                  log.warning(f"FEATURE_COLS: {FEATURE_COLS}")
             
             return session, output_names
         except FileNotFoundError:
-            log.error(f"Arquivo do modelo não encontrado em: {path}")
+            log.error(f"Model file not found at: {path}")
             raise
         except Exception as e:
-            log.error(f"Erro ao carregar o modelo ONNX: {e}")
+            log.error(f"Error loading ONNX model: {e}")
             raise
 
     def _get_prediction_data(self, con):
-        """Busca os dados necessários para a previsão no banco de dados."""
-        log.info("Extraindo dados para previsão de SLA...")
+        """Fetches the necessary data for prediction from the database."""
+        log.info("Extracting data for SLA prediction...")
 
         query_data = f"""
         WITH StatusHistoryFeatures AS (
@@ -130,53 +129,53 @@ class SlaPredictionExtractor:
         """
         try:
             df_data = con.execute(query_data).fetchdf()
-            log.info(f"Encontrados {len(df_data)} tickets abertos para previsão.")
+            log.info(f"Found {len(df_data)} open tickets for prediction.")
             
             for col in FEATURE_COLS:
                  if col not in df_data.columns:
-                      log.error(f"Coluna '{col}' esperada não encontrada nos resultados da query!")
-                      raise ValueError(f"Coluna '{col}' ausente.")
+                      log.error(f"Expected column '{col}' not found in query results!")
+                      raise ValueError(f"Missing column: '{col}'")
 
             return df_data
         except Exception as e:
-            log.error(f"Erro ao executar a query de dados de previsão: {e}")
+            log.error(f"Error executing prediction data query: {e}")
             raise
 
     def _prepare_onnx_input_dict(self, df_subset):
-        """Prepara o dicionário de input no formato esperado pelo ONNX Runtime."""
+        """Prepares the input dictionary in the format expected by ONNX Runtime."""
         input_dict = {}
         
         for col in NUMERICAL_FEATURES_ONNX:
             if col in df_subset:
                  input_dict[col] = df_subset[col].values.astype(np.float32).reshape(-1, 1)
             else:
-                 raise ValueError(f"Coluna numérica '{col}' está faltando no DataFrame para preparar input ONNX.")
+                 raise ValueError(f"Numerical column '{col}' is missing from DataFrame for ONNX input preparation.")
 
         for col in CATEGORICAL_FEATURES_ONNX:
              if col in df_subset:
                   input_dict[col] = df_subset[col].values.astype(object).reshape(-1, 1)
              else:
-                  raise ValueError(f"Coluna categórica '{col}' está faltando no DataFrame para preparar input ONNX.")
+                  raise ValueError(f"Categorical column '{col}' is missing from DataFrame for ONNX input preparation.")
         
         ordered_input_dict = {name: input_dict[name] for name in self.onnx_input_names if name in input_dict}
         
         if len(ordered_input_dict) != len(self.onnx_input_names):
              missing_keys = set(self.onnx_input_names) - set(ordered_input_dict.keys())
-             raise ValueError(f"Inputs ONNX faltando no dicionário preparado: {missing_keys}")
+             raise ValueError(f"Missing ONNX inputs in prepared dictionary: {missing_keys}")
              
         return ordered_input_dict
 
 
     def _run_predictions(self, session, output_names, df_data):
-        """Gera previsões usando o modelo ONNX e formata a saída."""
+        """Generates predictions using the ONNX model and formats the output."""
         
         if df_data.empty:
-            log.warning("Sem dados para prever, pulando inferência.")
+            log.warning("No data to predict, skipping inference.")
             return
 
         try:
             onnx_input_dict = self._prepare_onnx_input_dict(df_data) 
-            log.info(f"Executando inferência em {len(df_data)} registros...")
+            log.info(f"Running inference on {len(df_data)} records...")
 
             result = session.run(output_names, onnx_input_dict) 
 
@@ -185,15 +184,15 @@ class SlaPredictionExtractor:
             elif isinstance(result[1], np.ndarray) and result[1].shape[1] == 2:
                  predictions_proba_breach = result[1][:, 1]
             else:
-                 log.error(f"Formato inesperado para output_probability: {type(result[1])}")
+                 log.error(f"Unexpected format for output_probability: {type(result[1])}")
                  predictions_proba_breach = np.zeros(len(df_data))
 
             df_data['sla_breach_probability'] = predictions_proba_breach
             
-            log.info("Inferência completa. Formatando resultados...")
+            log.info("Inference complete. Formatting results...")
 
             today = date.today().isoformat()
-            cols_to_keep = ['ticket_id', 'company_name', 'product_name', 'sla_breach_probability']
+            cols_to_keep = ['ticket_id', 'company_name', 'product_name', 'subcategory_name', 'sla_breach_probability']
             if 'company_id' in df_data.columns: cols_to_keep.append('company_id')
             if 'product_id' in df_data.columns: cols_to_keep.append('product_id')
 
@@ -203,15 +202,15 @@ class SlaPredictionExtractor:
             self.json_list = df_output.to_dict(orient='records')
                 
         except KeyError as e:
-            log.error(f"FATAL: Erro de chave ao preparar input ONNX ou processar resultado. Coluna: {e}")
-            log.error("Verifique se FEATURE_COLS e a query SQL estão corretas e se os nomes dos outputs ONNX são os esperados.")
+            log.error(f"FATAL: Key error preparing ONNX input or processing result. Column: {e}")
+            log.error("Check if FEATURE_COLS and SQL query are correct and if ONNX output names are as expected.")
             raise
         except Exception as e:
-            log.error(f"Erro durante a inferência do modelo ONNX: {e}", exc_info=True)
+            log.error(f"Error during ONNX model inference: {e}", exc_info=True)
             raise
 
     def execute(self):
-        """Executa o processo completo de previsão de SLA."""
+        """Executes the complete SLA prediction process."""
         con = None
         try:
             con = self._connect_to_db()
@@ -219,18 +218,18 @@ class SlaPredictionExtractor:
             df_data = self._get_prediction_data(con)
 
             if df_data.empty:
-                log.warning("Nenhum ticket aberto encontrado. Pipeline finalizado.")
+                log.warning("No open tickets found. Pipeline finished.")
                 return []
 
             self._run_predictions(session, output_names, df_data)
 
-            log.info(f"Previsão de SLA completa. Total de {len(self.json_list)} registros gerados.")
+            log.info(f"SLA Prediction complete. Total of {len(self.json_list)} records generated.")
             return self.json_list
 
         except Exception as e:
-            log.error(f"Erro geral na execução do SlaPredictionExtractor: {e}", exc_info=True)
+            log.error(f"General error in SlaPredictionExtractor execution: {e}", exc_info=True)
             return []
         finally:
             if con:
                 con.close()
-                log.info("Conexão com o banco de dados fechada.")
+                log.info("Database connection closed.")
