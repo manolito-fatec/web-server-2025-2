@@ -11,4 +11,6 @@ public interface AppRoleRepository extends JpaRepository<AppRole, Long> {
     Set<AppRole> findById(Integer id);
 
     @NotNull AppRole getAppRoleById(Integer id);
+
+    @NotNull AppRole getByRlName(String rlName);
 }
