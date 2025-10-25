@@ -8,7 +8,7 @@ import com.pardal.app.entity.dto.insights.InsightsFilterDto;
 import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
 import com.pardal.app.repository.ForecasterRespository;
 import com.pardal.app.repository.InsightRepository;
-import com.pardal.app.repository.SlaPredictionRepository;
+import com.pardal.app.repository.slaPrediction.SlaPredictionRepository;
 import com.pardal.app.service.tickets.TicketsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -75,10 +75,7 @@ public class InsightsServiceImpl implements InsightsService {
 
     private List<SlaPredictionResponseDto> getTopSlaRiskBySubcategory(Integer companyId) {
         try {
-            if (companyId == null) {
-                return slaPredictionRepository.findTop3RiskSubcategoriesForAllCompanies();
-            }
-            return slaPredictionRepository.findTop3RiskSubcategoriesByCompany(companyId);
+            return slaPredictionRepository.findTop3ByCompanyIdGroupedBySubcategory(companyId);
         } catch (Exception e) {
             System.err.println("Error fetching top SLA risk subcategories: " + e.getMessage());
             return Collections.emptyList();
