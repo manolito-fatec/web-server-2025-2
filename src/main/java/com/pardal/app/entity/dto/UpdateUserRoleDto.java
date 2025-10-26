@@ -4,12 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class TicketCountDto  {
-    private String period;
-    private Long totalTickets;
+public class UpdateUserRoleDto {
+    private Integer id;
+    private String role;
 }

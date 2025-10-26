@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:17
     container_name: postgres_db_service
+    networks:
+      - pardal-network
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -11,7 +13,7 @@ services:
       - "5432:5432"
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,6 +22,8 @@ services:
   mongo:
     image: mongo:8
     container_name: mongo_audit_service
+    networks:
+      - pardal-network
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
@@ -29,14 +33,17 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
+
   etl-service:
     build:
       context: ./etl-python
+    networks:
+      - pardal-network
     restart: 'unless-stopped'
     env_file:
       - .env
@@ -44,6 +51,7 @@ services:
       - TZ=America/Sao_Paulo
     volumes:
       - ./dump:/app/dump
+      - ./etl-python/data:/app/output/insights_data
     depends_on:
       db:
         condition: service_healthy
@@ -58,7 +66,11 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [ gpu ]
 
 volumes:
   mongo-data:
+
+networks:
+  pardal-network:
+    driver: bridge

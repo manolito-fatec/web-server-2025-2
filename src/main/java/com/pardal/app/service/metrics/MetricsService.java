@@ -1,12 +1,12 @@
 package com.pardal.app.service.metrics;
 
-import com.pardal.app.entity.dto.ChartDto;
-import com.pardal.app.entity.dto.DashboardFilterDto;
-import com.pardal.app.entity.dto.FilterDataDto;
+import com.pardal.app.entity.dto.metrics.ChartDto;
+import com.pardal.app.entity.dto.metrics.DashboardFilterDto;
+import com.pardal.app.entity.dto.metrics.FilterMetricsDataDto;
 
 public interface MetricsService
 {
-    public FilterDataDto getFilterData(int pPage, int pPageSize);
+    public FilterMetricsDataDto getFilterData(int pPage, int pPageSize);
 
     ChartDto getAllChartData(DashboardFilterDto filters);
 }
