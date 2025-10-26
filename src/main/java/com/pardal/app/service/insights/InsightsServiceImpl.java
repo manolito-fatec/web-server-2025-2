@@ -5,13 +5,16 @@ import com.pardal.app.entity.documents.Forecaster;
 import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.InsightsFilterDto;
+import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
 import com.pardal.app.repository.ForecasterRespository;
 import com.pardal.app.repository.InsightRepository;
+import com.pardal.app.repository.slaPrediction.SlaPredictionRepository;
 import com.pardal.app.service.tickets.TicketsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -24,6 +27,7 @@ public class InsightsServiceImpl implements InsightsService {
     private final TicketsService ticketsService;
     private final InsightRepository insightRepository;
     private final ForecasterRespository forecasterRepository;
+    private final SlaPredictionRepository slaPredictionRepository;
 
     @Override
     public InsightsDataDto getAllInsightsData(InsightsFilterDto pFilters) {
@@ -35,7 +39,7 @@ public class InsightsServiceImpl implements InsightsService {
         response.setParetoInsightData(ticketsService.getCountSubcategory(baseSpec));
         response.setProductInsightsData(findLatestByCompanyId(pFilters.getCustomerId()));
         response.setSeasonalityInsightData(findForecasters(pFilters.getCustomerId()));
-        // response.setAQUI(os dados dos outros cards quando ficarem prontos());
+        response.setSlaInsightData(getTopSlaRiskBySubcategory(pFilters.getCustomerId()));
 
         return response;
     }
@@ -67,5 +71,14 @@ public class InsightsServiceImpl implements InsightsService {
         return (companyId == null)
         ? forecasterRepository.findAllCompanies()
         : forecasterRepository.findByCompanyId(companyId); 
+    }
+
+    private List<SlaPredictionResponseDto> getTopSlaRiskBySubcategory(Integer companyId) {
+        try {
+            return slaPredictionRepository.findTop3ByCompanyIdGroupedBySubcategory(companyId);
+        } catch (Exception e) {
+            System.err.println("Error fetching top SLA risk subcategories: " + e.getMessage());
+            return Collections.emptyList();
+        }
     }
 }

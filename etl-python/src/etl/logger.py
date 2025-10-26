@@ -100,3 +100,40 @@ class ForecasterLogger:
 
         self.collection.insert_one(summary_doc)
         log.info("forecaster pipeline execution summary logged to MongoDB.")
+
+class SlaPredictionLogger:
+    """Class responsible for logging SLA prediction pipeline events to MongoDB."""
+
+    def __init__(self, mongo_collection):
+        self.collection = mongo_collection
+
+    def log_summary_predictions(self, start_time, status, predictions_generated_count=0, 
+                                error_message=None):
+        """Logs a summary document at the end of the SLA prediction pipeline execution."""
+        end_time = datetime.datetime.now(datetime.timezone.utc)
+        service_name = "SLA_PREDICTION_PIPELINE" 
+        script_name = "etl/sla_prediction/pipeline.py" 
+
+        summary_doc = {
+            "timestamp": end_time, 
+            "level": "AUDIT", 
+            "service": service_name,
+            "action": "SLA_PREDICTION_COMPLETED",
+            "actor": {"type": "SYSTEM_SCRIPT", "scriptName": script_name},
+            "details": {
+                "status": status, 
+                "startTime": start_time, 
+                "endTime": end_time,
+                "durationInSeconds": (end_time - start_time).total_seconds(),
+                "predictionsGenerated": predictions_generated_count, 
+                "message": f"SLA Prediction pipeline execution completed. Status: {status}"
+            }
+        }
+        if error_message:
+            summary_doc["details"]["errorMessage"] = str(error_message)
+
+        try:
+            self.collection.insert_one(summary_doc)
+            log.info(f"{service_name} execution summary logged to MongoDB.")
+        except Exception as e:
+            log.critical(f"Failed to log {service_name} execution summary to MongoDB: {e}", exc_info=True)
