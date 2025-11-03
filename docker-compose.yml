@@ -38,6 +38,28 @@ services:
       timeout: 5s
       retries: 5
 
+  etl-restore-watcher:
+    build:
+      context: ./etl-python
+    networks:
+      - pardal-network
+    restart: 'unless-stopped'
+    env_file:
+      - .env
+    environment:
+      - TZ=America/Sao_Paulo
+    volumes:
+      - ./restore:/app/restore
+      - ./restore_status:/app/restore_status
+      - ./dump_processed:/app/dump_processed
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+
+    command: /bin/bash /app/config/restore-watcher.sh
+
 
   etl-service:
     build:
@@ -51,6 +73,7 @@ services:
       - TZ=America/Sao_Paulo
     volumes:
       - ./dump:/app/dump
+      - ./restore_status:/app/restore_status
       - ./etl-python/data:/app/output/insights_data
     depends_on:
       db:
@@ -58,7 +81,7 @@ services:
       mongo:
         condition: service_healthy
 
-    command: /bin/bash -c "./config/restore_db.sh && python -u main.py"
+    command: python -u main.py
 
     deploy:
       resources:
