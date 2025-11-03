@@ -18,33 +18,33 @@ log = logging.getLogger(__name__)
 if __name__ == "__main__":
 
     configurar_logger()
-    log.info("Iniciando processo de limpeza sob demanda (cleanup.py)...")
+    log.info("Starting on-demand cleanup process (cleanup.py)...")
 
     try:
         setup_audit_logs()
         setup_product_insights()
         setup_tickets_forecaster()
-        log.info("Configuração do MongoDB verificada.")
+        log.info("MongoDB configuration verified.")
     except Exception as e:
-        log.error(f"ERRO CRÍTICO: Falha ao configurar o MongoDB. A limpeza não será executada. Erro: {e}")
+        log.error(f"CRITICAL ERROR: Failed to configure MongoDB. Cleanup will not be executed. Error: {e}")
         sys.exit(1)
 
-    log.warning("AVISO: Este script fará mudanças permanentes de limpeza no banco de dados.")
+    log.warning("WARNING: This script will make permanent cleanup changes to the database.")
     time.sleep(3)
 
     try:
-        log.info("Iniciando o AnonymizationPipeline...")
+        log.info("Starting the AnonymizationPipeline...")
         pipeline = AnonymizationPipeline()
         pipeline.run()
 
         if pipeline.status == "SUCCESS":
-            log.info("AnonymizationPipeline concluído com SUCESSO.")
+            log.info("AnonymizationPipeline completed SUCCESSFULLY.")
         else:
-            log.error(f"AnonymizationPipeline falhou. Erro: {pipeline.error_info}")
+            log.error(f"AnonymizationPipeline failed. Error: {pipeline.error_info}")
             sys.exit(1)
 
     except Exception as e:
-        log.error(f"ERRO CRÍTICO durante a execução do pipeline de limpeza: {e}")
+        log.error(f"CRITICAL ERROR during cleanup pipeline execution: {e}")
         sys.exit(1)
 
-    log.info("Processo de limpeza (cleanup.py) finalizado com sucesso.")
+    log.info("Cleanup process (cleanup.py) finished successfully.")
