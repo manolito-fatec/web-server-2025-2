@@ -1,12 +1,14 @@
 #!/bin/bash
 set -e
 
+# --- Config ---
 INBOX_DIR="/app/restore"
 PROCESSED_DIR="/app/dump_processed"
 SCRIPT_CLEANUP="python -u cleanup.py"
 STATUS_DIR="/app/restore_status"
 FLAG_FILE="${STATUS_DIR}/restore_complete.signal"
 
+# --- Setup ---
 mkdir -p "${INBOX_DIR}"
 mkdir -p "${PROCESSED_DIR}"
 mkdir -p "${STATUS_DIR}"
@@ -18,13 +20,13 @@ process_file() {
     local FILENAME=$(basename "${FILE_PATH}")
 
     echo "-----------------------------------"
-    echo "Processo de restore iniciado para: ${FILENAME}"
+    echo "Restore process started for: ${FILENAME}"
 
     rm -f "${FLAG_FILE}"
-    echo "Sinal de 'concluído' removido. Iniciando restore..."
+    echo "'Completed' signal removed. Starting restore..."
     sleep 3
 
-    echo "Iniciando pg_restore..."
+    echo "Starting pg_restore..."
     pg_restore \
         --host=db \
         --username=${DB_USER} \
@@ -33,32 +35,35 @@ process_file() {
         --clean \
         --if-exists \
         "${FILE_PATH}"
-    echo "pg_restore concluído."
+    echo "pg_restore completed."
 
-    echo "Iniciando script de limpeza (cleanup.py)..."
+    echo "Starting cleanup script (cleanup.py)..."
     if ! $SCRIPT_CLEANUP; then
-        echo "ERRO CRÍTICO: Falha na limpeza após o restore."
+        echo "CRITICAL ERROR: Cleanup failed after restore."
         mv "${FILE_PATH}" "${PROCESSED_DIR}/ERROR_${FILENAME}"
     else
-        echo "Limpeza concluída com sucesso."
+        echo "Cleanup completed successfully."
         mv "${FILE_PATH}" "${PROCESSED_DIR}/${FILENAME}"
 
         touch "${FLAG_FILE}"
-        echo "Sinal de 'concluído' criado em ${FLAG_FILE}"
+        echo "'Completed' signal created at ${FLAG_FILE}"
     fi
     echo "-----------------------------------"
 }
 
-echo "--- Restore Watcher Iniciado ---"
+echo "--- Restore Watcher Started ---"
+echo "Processing pre-existing files in ${INBOX_DIR}..."
 shopt -s nullglob
 for file in "${INBOX_DIR}"/*.dump; do
     process_file "${file}"
 done
 shopt -u nullglob
+echo "Initial processing complete."
 
-echo "Monitorando pasta: ${INBOX_DIR}"
+echo "Now monitoring folder: ${INBOX_DIR}"
 inotifywait -m -e moved_to -e create --include '.*\.dump$' "${INBOX_DIR}" |
 while read -r directory event filename; do
+    echo "New event '${event}' detected for file: ${filename}"
     process_file "${directory}${filename}"
 done
 
