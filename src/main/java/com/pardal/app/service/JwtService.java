@@ -31,7 +31,7 @@ public class JwtService {
     public String generateToken(AppUser user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole());
-        claims.put("email", user.getEmail());
+        claims.put("email", user.getEmailHash());
         claims.put("userId", user.getId());
         return generateToken(claims, user);
     }
@@ -68,7 +68,7 @@ public class JwtService {
         return Jwts
                 .builder()
                 .setClaims(claims)
-                .setSubject(user.getEmail())
+                .setSubject(user.getEncryptedEmail())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

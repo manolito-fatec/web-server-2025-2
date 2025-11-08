@@ -8,7 +8,10 @@ import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
+import com.pardal.app.service.vault.HashService;
+import com.pardal.app.service.vault.VaultEncryptionService;
 import lombok.RequiredArgsConstructor;
+import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,6 +30,9 @@ public class AppUserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final VaultEncryptionService vaultEncryptionService;
+    private final HashService hashService;
+
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -42,9 +48,18 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto convertUserToDto(AppUser appUser) {
         return AppUserDto.builder()
                 .id(appUser.getId())
-                .name(appUser.getName())
-                .email(appUser.getEmail())
-                .phone(appUser.getPhone())
+                .name(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                        appUser.getEncryptedName(),
+                        appUser.getNameDEK()
+                )))
+                .email(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                        appUser.getEncryptedEmail(),
+                        appUser.getEmailDEK()
+                )))
+                .phone(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                        appUser.getEncryptedPhone(),
+                        appUser.getPhoneDEK()
+                )))
                 .role(appUser.getRole())
                 .expireDate(appUser.getExpireDate())
                 .password(appUser.getPassword())
@@ -94,7 +109,7 @@ public class AppUserService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<AppUser> user = appUserRepository.findByEmail(email);
+        Optional<AppUser> user = appUserRepository.findByEmailHash(email);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
@@ -151,11 +166,22 @@ public class AppUserService implements UserDetailsService {
 
         String verificationToken = UUID.randomUUID().toString();
 
+        EncryptedData encryptedEmail = vaultEncryptionService.encryptWithEnvelope(appUserDto.getEmail());
+
+        EncryptedData encryptedPhone = vaultEncryptionService.encryptWithEnvelope(appUserDto.getPhone());
+
+        EncryptedData encryptedName = vaultEncryptionService.encryptWithEnvelope(appUserDto.getName());
+
+
         AppUser appUser = AppUser.builder()
-                .name(appUserDto.getName())
+                .encryptedEmail(encryptedEmail.getEncryptedValue())
+                .emailHash(hashService.hashEmail(appUserDto.getEmail()))
+                .emailDEK(encryptedEmail.getEncryptedDEK())
+                .encryptedPhone(encryptedPhone.getEncryptedValue())
+                .phoneDEK(encryptedPhone.getEncryptedDEK())
+                .encryptedName(encryptedName.getEncryptedValue())
+                .nameDEK(encryptedName.getEncryptedDEK())
                 .password(passwordEncoder.encode(appUserDto.getPassword()))
-                .email(appUserDto.getEmail())
-                .phone(appUserDto.getPhone())
                 .expireDate(LocalDate.now())
                 .role(appRoleRepository.getAppRoleById(2))
                 .emailVerified(false)
@@ -163,7 +189,11 @@ public class AppUserService implements UserDetailsService {
                 .build();
 
         AppUser newUser = userRepository.save(appUser);
-        emailService.sendValidationEmail(newUser.getEmail(), newUser.getVerificationToken());
+        emailService.sendValidationEmail(vaultEncryptionService.decryptWithEnvelope(
+                new EncryptedData(
+                        newUser.getEncryptedEmail(),
+                        newUser.getEmailDEK()
+                )), newUser.getVerificationToken());
 
         return convertUserToDto(userRepository.save(appUser));
     }
@@ -177,7 +207,7 @@ public class AppUserService implements UserDetailsService {
     }
 
     public AppUser getUserByEmail(String email) {
-        Optional<AppUser> appuser = appUserRepository.getAppUserByEmail(email);
+        Optional<AppUser> appuser = appUserRepository.getAppUserByEmailHash(email);
         if (appuser.isEmpty()) {
             throw new IllegalArgumentException("User not found with email: " + email);
         }

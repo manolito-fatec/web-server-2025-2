@@ -3,6 +3,7 @@ package com.pardal.app.filter;
 import com.pardal.app.entity.AppUser;
 import com.pardal.app.service.JwtService;
 import com.pardal.app.service.appUser.AppUserService;
+import com.pardal.app.service.vault.HashService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +25,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final AppUserService appUserService;
+    private final HashService hashService;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,

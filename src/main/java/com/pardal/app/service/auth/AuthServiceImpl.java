@@ -10,10 +10,12 @@ import com.pardal.app.exceptions.AppUserNotFoundException;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.service.JwtService;
 import com.pardal.app.service.appUser.AppUserService;
+import com.pardal.app.service.vault.HashService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,9 +24,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private PasswordEncoder passwordEncoder;
+    private final HashService hashService;
     private final AppUserService appUserService;
-    private AppRoleRepository appRoleRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
@@ -41,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
      * @throws IllegalArgumentException if authentication fails or the user is not found
      */
     public JwtAuthenticationResponseDto login(LoginRequestDto request) {
+        request.setEmail(hashService.hashEmail(request.getEmail()));
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -104,8 +106,8 @@ public class AuthServiceImpl implements AuthService {
 
         return new ResponseUserCreatedDto(
                 appUser.getId(),
-                appUser.getName(),
-                appUser.getEmail(),
+                appUser.getEncryptedName(),
+                appUser.getEncryptedEmail(),
                 appUser.getRole().getRlName()
         );
 
