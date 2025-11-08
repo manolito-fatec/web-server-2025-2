@@ -6,19 +6,22 @@ import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.InsightsFilterDto;
 import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
-import com.pardal.app.repository.ForecasterRespository;
-import com.pardal.app.repository.InsightRepository;
+import com.pardal.app.repository.forecaster.ForecasterRespository;
+import com.pardal.app.repository.insight.InsightRepository;
 import com.pardal.app.repository.slaPrediction.SlaPredictionRepository;
+
 import com.pardal.app.service.tickets.TicketsService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import static com.pardal.app.repository.specification.tickets.util.TicketsUtil.buildTicketSpecificationFromFilters;
+import static com.pardal.app.repository.specification.tickets.util.TicketsUtil.buildTicketSpecificationFromFilterList;;
 
 @Service
 @RequiredArgsConstructor
@@ -31,32 +34,34 @@ public class InsightsServiceImpl implements InsightsService {
 
     @Override
     public InsightsDataDto getAllInsightsData(InsightsFilterDto pFilters) {
-
-        Specification<Tickets> baseSpec = buildTicketSpecificationFromFilters(pFilters);
+        filterValidator(pFilters);
+        Specification<Tickets> baseSpec = buildTicketSpecificationFromFilterList(pFilters);
 
         InsightsDataDto response = new InsightsDataDto();
 
         response.setParetoInsightData(ticketsService.getCountSubcategory(baseSpec));
-        response.setProductInsightsData(findLatestByCompanyId(pFilters.getCustomerId()));
-        response.setSeasonalityInsightData(findForecasters(pFilters.getCustomerId()));
-        response.setSlaInsightData(getTopSlaRiskBySubcategory(pFilters.getCustomerId()));
+        response.setProductInsightsData(findLatestByCompanyId(pFilters));
+        response.setSeasonalityInsightData(findForecasters(pFilters));
+        response.setSlaInsightData(getTopSlaRiskBySubcategory(pFilters));
 
         return response;
     }
 
-    @Override
-    public List<TicketInsight> findByCompanyId(Integer companyId) {
-        return insightRepository.findByCompanyId(companyId);
-    }
-
-    private List<TicketInsight> findLatestByCompanyId(Integer companyId) {
-        List<TicketInsight> insights = insightRepository.findLatestInsightsByCompanyId(companyId);
-
-        if (insights.isEmpty()) {
-            throw new NoSuchElementException("No insights found for company ID: " + companyId);
+    /**
+     * Retrieves the latest ticket insights based on a list of customer and product IDs.
+     * @param pFilters A DTO containing the lists of customer IDs and product IDs for filtering.
+     * @author otavio
+     * @return A {@code List<TicketInsight>} of the latest insights matching the criteria,
+     * or an empty list if an error occurs during fetching.
+     */
+    private List<TicketInsight> findLatestByCompanyId(InsightsFilterDto pFilters)
+    {
+        try {
+            return insightRepository.findLatestInsightsByCompanyIdOurProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
+        } catch (Exception e) {
+            System.err.println("Error fetching Insight " + e.getMessage());
+            return Collections.emptyList();
         }
-
-        return insights;
     }
 
     /**
@@ -66,19 +71,49 @@ public class InsightsServiceImpl implements InsightsService {
      * @author paulo arantes
      * @return a list of Forecaster records matching the filter
      */
-    private List<Forecaster> findForecasters(Integer companyId)
+    private List<Forecaster> findForecasters(InsightsFilterDto pFilters)
     {
-        return (companyId == null)
-        ? forecasterRepository.findAllCompanies()
-        : forecasterRepository.findByCompanyId(companyId); 
+        try{
+            return forecasterRepository.findByCompanyIdOurProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
+        }catch (Exception e) {
+            System.err.println("Error fetching Forecaster data: " + e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
-    private List<SlaPredictionResponseDto> getTopSlaRiskBySubcategory(Integer companyId) {
+    /**
+     * Retrieves the top 3 subcategories with the highest average SLA breach probability,
+     * optionally filtered by a list of customer IDs and product IDs.
+     *
+     * @param pFilters The {@code InsightsFilterDto} containing the optional lists of 
+     * customer IDs and product IDs for filtering.
+     * @author andré
+     * @return A {@code List} of the top 3 {@code SlaPredictionResponseDto} objects, 
+     * or an empty list if an error occurs during data retrieval.
+     */
+    private List<SlaPredictionResponseDto> getTopSlaRiskBySubcategory(InsightsFilterDto pFilters) {
         try {
-            return slaPredictionRepository.findTop3ByCompanyIdGroupedBySubcategory(companyId);
+            return slaPredictionRepository.findTop3ByCompanyIdGroupedBySubcategory(pFilters.getCustomerIds(), pFilters.getProductIds());
         } catch (Exception e) {
             System.err.println("Error fetching top SLA risk subcategories: " + e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Replaces {@code null} customer and product ID lists in the filter DTO with 
+     * an empty, immutable list to prevent {@code NullPointerException}s.
+     * @param pFilters The filter DTO to validate and modify.
+     * @author paulo arantes
+     */
+    private void filterValidator(InsightsFilterDto pFilters)
+    {
+        pFilters.setCustomerIds(
+                Optional.ofNullable(pFilters.getCustomerIds()).orElseGet(List::of)
+                );
+
+        pFilters.setProductIds(
+                Optional.ofNullable(pFilters.getProductIds()).orElseGet(List::of)
+                );
     }
 }

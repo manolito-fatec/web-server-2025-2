@@ -13,13 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class InsightsDataDto {
-    // SLA
+
     private List<SlaPredictionResponseDto> slaInsightData;
 
-    // sazonalidade
     private List<Forecaster> seasonalityInsightData;
 
-    // insights de produto
     private List<TicketInsight> productInsightsData;
 
     private List<TicketsBySubcategoryCountDto> paretoInsightData;

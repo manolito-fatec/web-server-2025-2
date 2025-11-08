@@ -95,8 +95,9 @@ class SlaPredictionExtractor:
             t.company_id,
             t.subcategory_id,
             co.name AS company_name, 
-            p.name AS product_name, 
-            
+            p.name AS product_name,
+            p.product_id,
+
             -- Features Numericas
             COALESCE(sp.resolution_mins, 0)::FLOAT AS resolution_mins,
             EXTRACT(HOUR FROM t.created_at)::FLOAT AS created_hour,

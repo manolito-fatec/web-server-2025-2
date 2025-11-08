@@ -5,5 +5,5 @@ import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
 import java.util.List;
 
 public interface SlaPredictionRepositoryCustom {
-    List<SlaPredictionResponseDto> findTop3ByCompanyIdGroupedBySubcategory(Integer companyId);
+    List<SlaPredictionResponseDto> findTop3ByCompanyIdGroupedBySubcategory(List<Integer> companyIdList, List<Integer> productIdList);
 }

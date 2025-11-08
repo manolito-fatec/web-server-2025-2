@@ -62,11 +62,10 @@ class TicketForecasterPipeline:
             with MongoConnector() as client:
                 log_collection = client[settings.MONGO_LOG_DB_NAME][settings.MONGO_LOG_COLLECTION]
                 logger = ForecasterLogger(mongo_collection=log_collection)
-                logger.log_summary_insights(
+                logger.log_summary_forecaster(
                     start_time=self.start_time,
                     status=self.status,
-                    foracaster_generated_count=self.forecaster_count,
-                    files_processed_count=self.files_count,
+                    forecaster_generated_count=self.forecaster_count,
                     error_message=self.error_info
                 )
                 log.info("Execution summary successfully recorded to MongoDB.")
