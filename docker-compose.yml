@@ -18,6 +18,63 @@ services:
       timeout: 5s
       retries: 5
 
+  vault:
+    image: hashicorp/vault:1.15.6
+    container_name: vault-dev
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root-token
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://127.0.0.1:8200
+    cap_add:
+      - IPC_LOCK
+    command: server -dev
+    healthcheck:
+      test: [ "CMD", "vault", "status" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - vault-network
+
+  vault-init:
+    image: hashicorp/vault:1.15.6
+    container_name: vault-init
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root-token
+    depends_on:
+      vault:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      echo 'Aguardando Vault estar pronto...';
+      sleep 2;
+
+      echo 'Habilitando Transit Engine...';
+      vault secrets enable transit || echo 'Transit já habilitado';
+
+      echo 'Criando chave de criptografia user-encryption-key...';
+      vault write -f transit/keys/user-encryption-key || echo 'Chave já existe';
+
+      echo 'Configurando políticas de acesso...';
+      vault policy write transit-policy - <<EOF
+      path \"transit/encrypt/user-encryption-key\" {
+        capabilities = [\"update\"]
+      }
+      path \"transit/decrypt/user-encryption-key\" {
+        capabilities = [\"update\"]
+      }
+      EOF
+
+      echo 'Vault configurado com sucesso!';
+      "
+    networks:
+      - vault-network
+    restart: "no"
+
 
   mongo:
     image: mongo:8
@@ -92,8 +149,12 @@ services:
               capabilities: [ gpu ]
 
 volumes:
+  vault-pg-data:
+    driver: local
   mongo-data:
 
 networks:
   pardal-network:
+    driver: bridge
+  vault-network:
     driver: bridge
