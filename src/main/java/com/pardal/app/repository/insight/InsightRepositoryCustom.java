@@ -6,5 +6,5 @@ import com.pardal.app.entity.documents.TicketInsight;
 
 public interface InsightRepositoryCustom
 {
-    List<TicketInsight> findLatestInsightsByCompanyIdOurProductId(List<Integer> customerIdList, List<Integer> productIdList );
+    List<TicketInsight> findLatestInsightsByCompanyIdOrProductId(List<Integer> customerIdList, List<Integer> productIdList );
 }

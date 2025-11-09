@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticatorController {
 
     private final  AuthService authService;
@@ -30,6 +33,7 @@ public class AuthenticatorController {
     @PostMapping("/signup")
     public ResponseEntity<ResponseUserCreatedDto> signup(@RequestBody SignupRequestDto request) {
         ResponseUserCreatedDto response = authService.signup(request);
+        log.info("User with the ID {} was successfully registered.", response.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     };
 
@@ -43,6 +47,7 @@ public class AuthenticatorController {
     @PostMapping("/verify")
     public ResponseEntity<ResponseUserCreatedDto> verify(@RequestBody String token) {
         ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
+        log.info("Verification successful.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @Operation(summary = "Login de Usuário")
@@ -55,6 +60,7 @@ public class AuthenticatorController {
     @PostMapping("/login")
     public ResponseEntity<JwtAuthenticationResponseDto> login(@RequestBody LoginRequestDto request) {
         JwtAuthenticationResponseDto response = authService.login(request);
+        log.info("Login successful.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

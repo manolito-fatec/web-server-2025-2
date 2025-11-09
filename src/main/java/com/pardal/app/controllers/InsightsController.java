@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import java.util.NoSuchElementException;
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/api/insights")
 @RequiredArgsConstructor
+@Slf4j
 public class InsightsController {
 
     private final InsightsService insightsService;
@@ -37,6 +40,7 @@ public class InsightsController {
     ) {
         try {
             InsightsDataDto response = insightsService.getAllInsightsData(filters);
+            log.info("Insights retrieval successful.");
             return ResponseEntity.ok(response);
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -46,9 +50,6 @@ public class InsightsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }
-
-
-
     }
 
 }

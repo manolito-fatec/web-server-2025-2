@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/user")
+@Slf4j
 public class AppUserController {
     private final AppUserService userService;
 
@@ -29,6 +32,7 @@ public class AppUserController {
     })
     @GetMapping("/id/{id}")
     public ResponseEntity<AppUserDto> getUserById(@PathVariable Integer id) {
+        log.info("Get User by Id {}", id);
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
@@ -42,6 +46,7 @@ public class AppUserController {
     })
     @GetMapping("/email/{email}")
     public ResponseEntity<AppUserDto> getUserByEmail(@PathVariable String email) {
+        log.info("Get User by email");
         return ResponseEntity.ok(userService.convertUserToDto(userService.getUserByEmail(email)));
     }
 
@@ -55,6 +60,7 @@ public class AppUserController {
     })
     @GetMapping("/all")
     public ResponseEntity<List<AppUserDto>> getAllUsers() {
+        log.info("Get All Users");
         List<AppUserDto> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
@@ -69,6 +75,7 @@ public class AppUserController {
     })
     @PostMapping()
     public ResponseEntity<AppUserDto> updateUser(@RequestBody AppUserDto user) {
+        log.info("Upadate user with id {}", user.getId());
         return ResponseEntity.ok(
                 userService.updateUser(
                         userService.getUserByEmail(user.getEmail())));
@@ -84,6 +91,7 @@ public class AppUserController {
     })
     @PostMapping("/role")
     public ResponseEntity<AppUserDto> updateUserRole(@RequestBody UpdateUserRoleDto user) {
+        log.info("Upadate user Role with id {}", user.getId());
         return ResponseEntity.ok(
                 userService.updateUserRole(user));
     }
@@ -98,6 +106,7 @@ public class AppUserController {
     })
     @DeleteMapping()
     public ResponseEntity<AppUserDto> deleteUser(@RequestParam Integer id) {
+        log.info("Delete user with id {}", id);
         return ResponseEntity.ok(userService.deleteUser(id));
     }
 

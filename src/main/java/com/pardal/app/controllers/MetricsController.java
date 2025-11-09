@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import java.util.NoSuchElementException;
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/api/metrics")
 @RequiredArgsConstructor
+@Slf4j
 public class MetricsController {
 
     private final MetricsService metricsService;
@@ -38,6 +41,7 @@ public class MetricsController {
             @RequestParam(defaultValue = "10") int size
     ){
         try {
+            log.info("Paginated retrieval of filter data in progress.");
             return ResponseEntity.ok().body(metricsService.getFilterData(page, size)
             );
         } catch (NoSuchElementException noSuchElementException) {
@@ -63,6 +67,7 @@ public class MetricsController {
             DashboardFilterDto filters
     ){
         try {
+            log.info("Data retrieval for chart population in progress.");
             return ResponseEntity.ok().body(metricsService.getAllChartData(filters)
             );
         } catch (NoSuchElementException noSuchElementException) {
