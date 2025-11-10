@@ -1,12 +1,8 @@
 package com.pardal.app.controllers;
 
-import com.pardal.app.entity.documents.Forecaster;
-import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.InsightsFilterDto;
 import com.pardal.app.entity.dto.insights.InsightsPdfRequestDto;
-import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
-import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import com.pardal.app.service.export.CsvExportService;
 import com.pardal.app.service.export.PdfExportService;
 import com.pardal.app.service.insights.InsightsService;
@@ -23,13 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
@@ -91,36 +82,13 @@ public class InsightsController {
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + zipFileName + "\"");
 
-        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
-
-            addCsvToZip(zos, "sla_prediction_data.csv", data.getSlaInsightData(), SlaPredictionResponseDto.class);
-            addCsvToZip(zos, "seasonality_forecaster_data.csv", data.getSeasonalityInsightData(), Forecaster.class);
-            addCsvToZip(zos, "product_insights_data.csv", data.getProductInsightsData(), TicketInsight.class);
-            addCsvToZip(zos, "pareto_subcategory_data.csv", data.getParetoInsightData(), TicketsBySubcategoryCountDto.class);
-
+        try {
+            csvExportService.exportInsightsZip(data, response.getOutputStream());
             response.flushBuffer();
 
         } catch (Exception e) {
             response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error generating export file.");
         }
-    }
-
-    private <T> void addCsvToZip(ZipOutputStream zos, String entryName, List<T> dataList, Class<T> type) throws IOException {
-        if (dataList == null || dataList.isEmpty()) {
-            return;
-        }
-
-        ZipEntry entry = new ZipEntry(entryName);
-        zos.putNextEntry(entry);
-
-        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8))) {
-            csvExportService.writeCsv(writer, dataList, type);
-            writer.flush();
-        } catch (RuntimeException e) {
-            throw new IOException(e);
-        }
-
-        zos.closeEntry();
     }
 
     @Operation(summary = "Exporta os insights visuais para PDF",
