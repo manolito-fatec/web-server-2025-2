@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 public class InsightsController {
 
     private final InsightsService insightsService;
+    private final String TITLE = "title";
 
     @Operation(summary = "Busca todos os insights centralizados (SLA, Sazonalidade, Produto, Pareto)",
             description = "Retorna um objeto com todos os dados necessários para a aba Insights, filtrados por Cliente.")
@@ -39,7 +40,7 @@ public class InsightsController {
             @Parameter(description = "DTO de filtro. O 'clientId' é opcional/nulo para a opção 'Todos'.")
             InsightsFilterDto filters
     ) {
-        MDC.put("title","Busca Insights");
+        MDC.put(TITLE,"Busca Insights");
         try {
             InsightsDataDto response = insightsService.getAllInsightsData(filters);
             log.info("Buscar por insight feita com sucesso.");
@@ -52,7 +53,7 @@ public class InsightsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 

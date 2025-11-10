@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticatorController {
 
     private final  AuthService authService;
+    private final String TITLE = "title";
 
     @Operation(summary = "Cadastro de Usuário")
     @ApiResponses(value = {
@@ -35,7 +36,7 @@ public class AuthenticatorController {
     })
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto request) {
-        MDC.put("title","Registro de usuário");
+        MDC.put(TITLE,"Registro de usuário");
         try {
             ResponseUserCreatedDto response = authService.signup(request);
             log.info("Usuário com email: {} foi registrado com sucesso", response.getEmail());
@@ -48,7 +49,7 @@ public class AuthenticatorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     };
 
@@ -61,7 +62,7 @@ public class AuthenticatorController {
     })
     @PostMapping("/verify")
     public ResponseEntity<?> verify(@RequestBody String token) {
-        MDC.put("title","Verificação de token");
+        MDC.put(TITLE,"Verificação de token");
         try{
             ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
             log.info("Verification feita com sucesso");
@@ -74,7 +75,7 @@ public class AuthenticatorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
     @Operation(summary = "Login de Usuário")
@@ -86,7 +87,7 @@ public class AuthenticatorController {
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
-        MDC.put("title","Login");
+        MDC.put(TITLE,"Login");
         try {
             JwtAuthenticationResponseDto response = authService.login(request);
             log.info("Login  do usuário {} feito com sucesso", request.getEmail());
@@ -99,7 +100,7 @@ public class AuthenticatorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 }

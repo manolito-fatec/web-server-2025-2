@@ -24,6 +24,7 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class AppUserController {
     private final AppUserService userService;
+    private final String TITLE = "title";
 
     @Operation(summary = "Busca de Usuário por ID")
     @ApiResponses(value = {
@@ -35,7 +36,7 @@ public class AppUserController {
     })
     @GetMapping("/id/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Integer id) {
-        MDC.put("title","Busca por Usuario");
+        MDC.put(TITLE,"Busca por Usuario");
         try
         {
             log.info("Busca pelo usuário com id: {}", id);
@@ -48,7 +49,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 
@@ -62,7 +63,7 @@ public class AppUserController {
     })
     @GetMapping("/email/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
-        MDC.put("title","Busca por Email");
+        MDC.put(TITLE,"Busca por Email");
         try {
             log.info("Busca de usuário utilizando o email: {}",email);
             return ResponseEntity.ok(userService.convertUserToDto(userService.getUserByEmail(email)));
@@ -75,7 +76,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 
@@ -89,7 +90,7 @@ public class AppUserController {
     })
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers() {
-        MDC.put("title","Buscar todos usuários");
+        MDC.put(TITLE,"Buscar todos usuários");
         try {
         List<AppUserDto> users = userService.getAllUsers();
         log.info("Busca por todos os usuários");
@@ -102,7 +103,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 
@@ -116,7 +117,7 @@ public class AppUserController {
     })
     @PostMapping()
     public ResponseEntity<?> updateUser(@RequestBody AppUserDto user) {
-        MDC.put("title","Atualização de usuário");
+        MDC.put(TITLE,"Atualização de usuário");
         try {
         log.info("Atualização do usuário com o ID: {}", user.getId());
         return ResponseEntity.ok(
@@ -130,7 +131,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 
@@ -144,7 +145,7 @@ public class AppUserController {
     })
     @PostMapping("/role")
     public ResponseEntity<?> updateUserRole(@RequestBody UpdateUserRoleDto user) {
-        MDC.put("title","Atualização da função do usuário");
+        MDC.put(TITLE,"Atualização da função do usuário");
         try {
             log.info("Atualização da role do usuário com id:{} para role: {}", user.getId(), user.getRole());
             return ResponseEntity.ok(
@@ -157,7 +158,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 
@@ -171,7 +172,7 @@ public class AppUserController {
     })
     @DeleteMapping()
     public ResponseEntity<?> deleteUser(@RequestParam Integer id) {
-        MDC.put("title","Atualização de usuário");
+        MDC.put(TITLE,"Atualização de usuário");
         try {
             log.info("Remoção do usuário com o ID {}", id);
             return ResponseEntity.ok(userService.deleteUser(id));
@@ -183,7 +184,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
     }
 

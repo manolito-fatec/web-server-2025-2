@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 public class MetricsController {
 
     private final MetricsService metricsService;
+    private final String TITLE = "title";
 
     @Operation(summary = "Busca dados de filtro de forma paginada", description = "Retorna uma lista paginada de dados de filtro com base nos parâmetros 'page' e 'size'.")
     @ApiResponses(value = {
@@ -67,7 +68,7 @@ public class MetricsController {
             @Parameter(description = "Dto de filtro com dados de productId, customerId, startDate, endDate e período de agrupamento.")
             DashboardFilterDto filters
     ){
-        MDC.put("title","Busca Por Métricas");
+        MDC.put(TITLE,"Busca Por Métricas");
         try {
             log.info("Busca informações para preenchimento do gráfico");
             return ResponseEntity.ok().body(metricsService.getAllChartData(filters)
@@ -79,7 +80,7 @@ public class MetricsController {
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
         }finally {
-            MDC.remove("title");
+            MDC.remove(TITLE);
         }
 
     }
