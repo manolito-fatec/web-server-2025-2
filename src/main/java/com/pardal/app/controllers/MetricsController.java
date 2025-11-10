@@ -6,18 +6,18 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.pardal.app.service.metrics.MetricsService;
-
-import java.util.NoSuchElementException;
+import com.pardal.app.util.RequestExceptionHandler;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/api/metrics")
 @RequiredArgsConstructor
+@Slf4j
 public class MetricsController {
 
     private final MetricsService metricsService;
@@ -36,18 +36,11 @@ public class MetricsController {
 
             @Parameter(description = "Numero de itens por pagina (default = 10)", example = "10")
             @RequestParam(defaultValue = "10") int size
-    ){
-        try {
-            return ResponseEntity.ok().body(metricsService.getFilterData(page, size)
-            );
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
-        }
-
+            ){
+        return RequestExceptionHandler.handleRequest("Busca dados de filtro", () -> {
+            log.info("Busca dados de filtro de forma paginada");
+            return ResponseEntity.ok().body(metricsService.getFilterData(page, size));
+        });
     }
 
     @Operation(summary = "Busca informações para preenchimento do gráfico", description = "Retorna informações para serem usadas para exibição em forma de gráfico e em cards")
@@ -61,17 +54,10 @@ public class MetricsController {
     public ResponseEntity<?> getAllChartData(
             @Parameter(description = "Dto de filtro com dados de productId, customerId, startDate, endDate e período de agrupamento.")
             DashboardFilterDto filters
-    ){
-        try {
-            return ResponseEntity.ok().body(metricsService.getAllChartData(filters)
-            );
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
-        }
-
+            ){
+        return RequestExceptionHandler.handleRequest("Busca Por Métricas", () -> {
+            log.info("Busca informações para preenchimento do gráfico");
+            return ResponseEntity.ok().body(metricsService.getAllChartData(filters));
+        });
     }
 }

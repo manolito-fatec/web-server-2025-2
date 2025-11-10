@@ -9,6 +9,8 @@ import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
 
@@ -69,6 +72,7 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto getUserById(Integer id) {
         Optional<AppUser> user = appUserRepository.findById(id);
         if (user.isEmpty()) {
+            log.error("User with ID: "+id+" Doesn't exist");
             throw new NoSuchElementException();
         }
         return convertUserToDto(user.get());

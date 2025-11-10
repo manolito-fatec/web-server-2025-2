@@ -23,7 +23,7 @@ public class ForecasterRepositoryCustomImpl implements ForecasterRepositoryCusto
     private final Class<Forecaster> FORECASTER_COLLECTION = Forecaster.class;
 
     @Override
-    public List<Forecaster> findByCompanyIdOurProductId ( List<Integer> companyIdList, List<Integer> productIdList )
+    public List<Forecaster> findByCompanyIdOrProductId ( List<Integer> companyIdList, List<Integer> productIdList )
     {
         List<AggregationOperation> operations = new ArrayList<>();
 
