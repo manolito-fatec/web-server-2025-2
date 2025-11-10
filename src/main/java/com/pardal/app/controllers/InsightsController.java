@@ -6,6 +6,8 @@ import com.pardal.app.entity.dto.insights.InsightsPdfRequestDto;
 import com.pardal.app.service.export.CsvExportService;
 import com.pardal.app.service.export.PdfExportService;
 import com.pardal.app.service.insights.InsightsService;
+import com.pardal.app.util.RequestExceptionHandler;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,11 +23,13 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/api/insights")
 @RequiredArgsConstructor
+@Slf4j
 public class InsightsController {
 
     private final InsightsService insightsService;
@@ -44,9 +48,10 @@ public class InsightsController {
     public ResponseEntity<?> getAllInsightsData(
             @Parameter(description = "DTO de filtro. O 'clientId' é opcional/nulo para a opção 'Todos'.")
             InsightsFilterDto filters
-    ) {
-        try {
+            ) {
+        return RequestExceptionHandler.handleRequest("Busca Insights", () -> {
             InsightsDataDto response = insightsService.getAllInsightsData(filters);
+            log.info("Busca por insight feita com sucesso.");
             return ResponseEntity.ok(response);
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

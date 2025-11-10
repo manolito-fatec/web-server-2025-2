@@ -23,7 +23,7 @@ public class InsightRepositoryCustomImpl implements InsightRepositoryCustom
     private final Class<TicketInsight> INSIGHT_COLLECTION = TicketInsight.class;
 
     @Override
-    public List<TicketInsight> findLatestInsightsByCompanyIdOurProductId (List<Integer> customersIdList, List<Integer> productIdList)
+    public List<TicketInsight> findLatestInsightsByCompanyIdOrProductId (List<Integer> customersIdList, List<Integer> productIdList)
     {
         List<AggregationOperation> operations = new ArrayList<>();
 

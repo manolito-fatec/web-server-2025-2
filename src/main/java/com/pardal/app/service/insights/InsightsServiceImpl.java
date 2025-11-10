@@ -12,6 +12,7 @@ import com.pardal.app.repository.slaPrediction.SlaPredictionRepository;
 
 import com.pardal.app.service.tickets.TicketsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import static com.pardal.app.repository.specification.tickets.util.TicketsUtil.b
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InsightsServiceImpl implements InsightsService {
 
     private final TicketsService ticketsService;
@@ -43,7 +45,6 @@ public class InsightsServiceImpl implements InsightsService {
         response.setProductInsightsData(findLatestByCompanyId(pFilters));
         response.setSeasonalityInsightData(findForecasters(pFilters));
         response.setSlaInsightData(getTopSlaRiskBySubcategory(pFilters));
-
         return response;
     }
 
@@ -57,9 +58,9 @@ public class InsightsServiceImpl implements InsightsService {
     private List<TicketInsight> findLatestByCompanyId(InsightsFilterDto pFilters)
     {
         try {
-            return insightRepository.findLatestInsightsByCompanyIdOurProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
+            return insightRepository.findLatestInsightsByCompanyIdOrProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
         } catch (Exception e) {
-            System.err.println("Error fetching Insight " + e.getMessage());
+            log.error("Erro ao buscar informações do Insights" + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -74,9 +75,9 @@ public class InsightsServiceImpl implements InsightsService {
     private List<Forecaster> findForecasters(InsightsFilterDto pFilters)
     {
         try{
-            return forecasterRepository.findByCompanyIdOurProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
+            return forecasterRepository.findByCompanyIdOrProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
         }catch (Exception e) {
-            System.err.println("Error fetching Forecaster data: " + e.getMessage());
+            log.error("Erro ao buscar informações do forecaster: " + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -95,7 +96,7 @@ public class InsightsServiceImpl implements InsightsService {
         try {
             return slaPredictionRepository.findTop3ByCompanyIdGroupedBySubcategory(pFilters.getCustomerIds(), pFilters.getProductIds());
         } catch (Exception e) {
-            System.err.println("Error fetching top SLA risk subcategories: " + e.getMessage());
+            log.error("Erro ao buscar informações sobre SLA: " + e.getMessage());
             return Collections.emptyList();
         }
     }
