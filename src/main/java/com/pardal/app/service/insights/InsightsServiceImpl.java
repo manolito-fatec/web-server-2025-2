@@ -45,7 +45,6 @@ public class InsightsServiceImpl implements InsightsService {
         response.setProductInsightsData(findLatestByCompanyId(pFilters));
         response.setSeasonalityInsightData(findForecasters(pFilters));
         response.setSlaInsightData(getTopSlaRiskBySubcategory(pFilters));
-        log.info("Request successful.");
         return response;
     }
 
@@ -61,7 +60,7 @@ public class InsightsServiceImpl implements InsightsService {
         try {
             return insightRepository.findLatestInsightsByCompanyIdOrProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
         } catch (Exception e) {
-            log.error("Error fetching Insight " + e.getMessage());
+            log.error("Erro ao buscar informações do Insights" + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -76,9 +75,9 @@ public class InsightsServiceImpl implements InsightsService {
     private List<Forecaster> findForecasters(InsightsFilterDto pFilters)
     {
         try{
-            return forecasterRepository.findByCompanyIdOurProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
+            return forecasterRepository.findByCompanyIdOrProductId(pFilters.getCustomerIds(), pFilters.getProductIds());
         }catch (Exception e) {
-            log.error("Error fetching Forecaster data: " + e.getMessage());
+            log.error("Erro ao buscar informações do forecaster: " + e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -97,7 +96,7 @@ public class InsightsServiceImpl implements InsightsService {
         try {
             return slaPredictionRepository.findTop3ByCompanyIdGroupedBySubcategory(pFilters.getCustomerIds(), pFilters.getProductIds());
         } catch (Exception e) {
-            log.error("Error fetching top SLA risk subcategories: " + e.getMessage());
+            log.error("Erro ao buscar informações sobre SLA: " + e.getMessage());
             return Collections.emptyList();
         }
     }
