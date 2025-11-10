@@ -35,6 +35,9 @@ public class MongoDbAppender extends AppenderBase<ILoggingEvent>
         if (mdcMap != null) {
             entry.setHttpMethod(mdcMap.get("httpMethod")); 
             entry.setRequestURI(mdcMap.get("requestURI"));
+            entry.setUserEmail(mdcMap.get("userEmail"));
+            entry.setRemoteIp(mdcMap.get("remoteIp"));
+            entry.setTitle(mdcMap.get("title"));
         }
         mongoTemplate.save(entry);
     }

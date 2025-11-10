@@ -22,9 +22,12 @@ public class LogEntry
     private String level;
     private String logger;
     private String message;
+    private String title;
     private LocalDateTime timestamp;
     private String thread;
     private String exception;
+    private String userEmail;
+    private String remoteIp;
     private String httpMethod;
     private String requestURI;
 }
