@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,9 +39,10 @@ public class InsightsController {
             @Parameter(description = "DTO de filtro. O 'clientId' é opcional/nulo para a opção 'Todos'.")
             InsightsFilterDto filters
     ) {
+        MDC.put("title","Busca Insights");
         try {
             InsightsDataDto response = insightsService.getAllInsightsData(filters);
-            log.info("Insights retrieval successful.");
+            log.info("Buscar por insight feita com sucesso.");
             return ResponseEntity.ok(response);
         } catch (NoSuchElementException noSuchElementException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -49,6 +51,8 @@ public class InsightsController {
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
         }
     }
 

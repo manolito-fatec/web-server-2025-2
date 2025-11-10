@@ -10,10 +10,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
 @RestController
@@ -31,9 +34,22 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<AppUserDto> getUserById(@PathVariable Integer id) {
-        log.info("Get User by Id {}", id);
-        return ResponseEntity.ok(userService.getUserById(id));
+    public ResponseEntity<?> getUserById(@PathVariable Integer id) {
+        MDC.put("title","Busca por Usuario");
+        try
+        {
+            log.info("Busca pelo usuário com id: {}", id);
+            return ResponseEntity.ok(userService.getUserById(id));
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 
     @Operation(summary = "Busca de Usuário por email")
@@ -45,9 +61,22 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @GetMapping("/email/{email}")
-    public ResponseEntity<AppUserDto> getUserByEmail(@PathVariable String email) {
-        log.info("Get User by email");
-        return ResponseEntity.ok(userService.convertUserToDto(userService.getUserByEmail(email)));
+    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+        MDC.put("title","Busca por Email");
+        try {
+            log.info("Busca de usuário utilizando o email: {}",email);
+            return ResponseEntity.ok(userService.convertUserToDto(userService.getUserByEmail(email)));
+        }
+        catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 
     @Operation(summary = "Busca de todos os Usuários")
@@ -59,10 +88,22 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @GetMapping("/all")
-    public ResponseEntity<List<AppUserDto>> getAllUsers() {
-        log.info("Get All Users");
+    public ResponseEntity<?> getAllUsers() {
+        MDC.put("title","Buscar todos usuários");
+        try {
         List<AppUserDto> users = userService.getAllUsers();
+        log.info("Busca por todos os usuários");
         return ResponseEntity.ok(users);
+        }catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 
     @Operation(summary = "Atualizar dados de um usuário")
@@ -74,11 +115,23 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @PostMapping()
-    public ResponseEntity<AppUserDto> updateUser(@RequestBody AppUserDto user) {
-        log.info("Upadate user with id {}", user.getId());
+    public ResponseEntity<?> updateUser(@RequestBody AppUserDto user) {
+        MDC.put("title","Atualização de usuário");
+        try {
+        log.info("Atualização do usuário com o ID: {}", user.getId());
         return ResponseEntity.ok(
                 userService.updateUser(
                         userService.getUserByEmail(user.getEmail())));
+        }catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 
     @Operation(summary = "Atualizar a role de um usuário")
@@ -90,10 +143,22 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @PostMapping("/role")
-    public ResponseEntity<AppUserDto> updateUserRole(@RequestBody UpdateUserRoleDto user) {
-        log.info("Upadate user Role with id {}", user.getId());
-        return ResponseEntity.ok(
-                userService.updateUserRole(user));
+    public ResponseEntity<?> updateUserRole(@RequestBody UpdateUserRoleDto user) {
+        MDC.put("title","Atualização da função do usuário");
+        try {
+            log.info("Atualização da role do usuário com id:{} para role: {}", user.getId(), user.getRole());
+            return ResponseEntity.ok(
+                    userService.updateUserRole(user));
+        }catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 
     @Operation(summary = "Deleção de um Usuário")
@@ -105,9 +170,21 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @DeleteMapping()
-    public ResponseEntity<AppUserDto> deleteUser(@RequestParam Integer id) {
-        log.info("Delete user with id {}", id);
-        return ResponseEntity.ok(userService.deleteUser(id));
+    public ResponseEntity<?> deleteUser(@RequestParam Integer id) {
+        MDC.put("title","Atualização de usuário");
+        try {
+            log.info("Remoção do usuário com o ID {}", id);
+            return ResponseEntity.ok(userService.deleteUser(id));
+        }catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 
 }

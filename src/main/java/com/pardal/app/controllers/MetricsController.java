@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +42,7 @@ public class MetricsController {
             @RequestParam(defaultValue = "10") int size
     ){
         try {
-            log.info("Paginated retrieval of filter data in progress.");
+            log.info("Busca dados de filtro de forma paginada");
             return ResponseEntity.ok().body(metricsService.getFilterData(page, size)
             );
         } catch (NoSuchElementException noSuchElementException) {
@@ -66,8 +67,9 @@ public class MetricsController {
             @Parameter(description = "Dto de filtro com dados de productId, customerId, startDate, endDate e período de agrupamento.")
             DashboardFilterDto filters
     ){
+        MDC.put("title","Busca Por Métricas");
         try {
-            log.info("Data retrieval for chart population in progress.");
+            log.info("Busca informações para preenchimento do gráfico");
             return ResponseEntity.ok().body(metricsService.getAllChartData(filters)
             );
         } catch (NoSuchElementException noSuchElementException) {
@@ -76,6 +78,8 @@ public class MetricsController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
         }
 
     }

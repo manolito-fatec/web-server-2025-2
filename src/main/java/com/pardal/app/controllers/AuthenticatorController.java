@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.NoSuchElementException;
+
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,10 +34,22 @@ public class AuthenticatorController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor no cadastro de usuário.")
     })
     @PostMapping("/signup")
-    public ResponseEntity<ResponseUserCreatedDto> signup(@RequestBody SignupRequestDto request) {
-        ResponseUserCreatedDto response = authService.signup(request);
-        log.info("User with the ID {} was successfully registered.", response.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<?> signup(@RequestBody SignupRequestDto request) {
+        MDC.put("title","Registro de usuário");
+        try {
+            ResponseUserCreatedDto response = authService.signup(request);
+            log.info("Usuário com email: {} foi registrado com sucesso", response.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     };
 
     @Operation(summary = "Valida o usuário criado via o token")
@@ -45,10 +60,22 @@ public class AuthenticatorController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor na validação de usuário.")
     })
     @PostMapping("/verify")
-    public ResponseEntity<ResponseUserCreatedDto> verify(@RequestBody String token) {
-        ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
-        log.info("Verification successful.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<?> verify(@RequestBody String token) {
+        MDC.put("title","Verificação de token");
+        try{
+            ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
+            log.info("Verification feita com sucesso");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
     @Operation(summary = "Login de Usuário")
     @ApiResponses(value = {
@@ -58,9 +85,21 @@ public class AuthenticatorController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar login.")
     })
     @PostMapping("/login")
-    public ResponseEntity<JwtAuthenticationResponseDto> login(@RequestBody LoginRequestDto request) {
-        JwtAuthenticationResponseDto response = authService.login(request);
-        log.info("Login successful.");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
+        MDC.put("title","Login");
+        try {
+            JwtAuthenticationResponseDto response = authService.login(request);
+            log.info("Login  do usuário {} feito com sucesso", request.getEmail());
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (NoSuchElementException noSuchElementException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + runtimeException.getMessage());
+        }finally {
+            MDC.remove("title");
+        }
     }
 }
