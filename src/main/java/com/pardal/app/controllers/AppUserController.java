@@ -4,19 +4,18 @@ package com.pardal.app.controllers;
 import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.entity.dto.UpdateUserRoleDto;
 import com.pardal.app.service.appUser.AppUserService;
+import com.pardal.app.util.RequestExceptionHandler;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.MDC;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
 @RestController
@@ -24,8 +23,6 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class AppUserController {
     private final AppUserService userService;
-    private final String TITLE = "title";
-    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Busca de Usuário por ID")
     @ApiResponses(value = {
@@ -37,21 +34,10 @@ public class AppUserController {
     })
     @GetMapping("/id/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Integer id) {
-        MDC.put(TITLE,"Busca por Usuario");
-        try
-        {
+        return RequestExceptionHandler.handleRequest("Busca por Usuario", () -> {
             log.info("Busca pelo usuário com id: {}", id);
             return ResponseEntity.ok(userService.getUserById(id));
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        });
     }
 
     @Operation(summary = "Busca de Usuário por email")
@@ -64,21 +50,10 @@ public class AppUserController {
     })
     @GetMapping("/email/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
-        MDC.put(TITLE,"Busca por Email");
-        try {
-            log.info("Busca de usuário utilizando o email: {}",email);
-            return ResponseEntity.ok(userService.convertUserToDto(userService.getUserByEmail(email)));
-        }
-        catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+            return RequestExceptionHandler.handleRequest("Busca por Email", () -> {
+                log.info("Busca de usuário utilizando o email: {}", email);
+                return ResponseEntity.ok(userService.convertUserToDto(userService.getUserByEmail(email)));
+            });
     }
 
     @Operation(summary = "Busca de todos os Usuários")
@@ -91,21 +66,11 @@ public class AppUserController {
     })
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers() {
-        MDC.put(TITLE,"Buscar todos usuários");
-        try {
-        List<AppUserDto> users = userService.getAllUsers();
-        log.info("Busca por todos os usuários");
-        return ResponseEntity.ok(users);
-        }catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        return RequestExceptionHandler.handleRequest("Buscar todos usuários", () -> {
+            List<AppUserDto> users = userService.getAllUsers();
+            log.info("Busca por todos os usuários");
+            return ResponseEntity.ok(users);
+        });
     }
 
     @Operation(summary = "Atualizar dados de um usuário")
@@ -118,22 +83,12 @@ public class AppUserController {
     })
     @PostMapping()
     public ResponseEntity<?> updateUser(@RequestBody AppUserDto user) {
-        MDC.put(TITLE,"Atualização de usuário");
-        try {
-        log.info("Atualização do usuário com o ID: {}", user.getId());
-        return ResponseEntity.ok(
-                userService.updateUser(
-                        userService.getUserByEmail(user.getEmail())));
-        }catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        return RequestExceptionHandler.handleRequest("Atualização de usuário", () -> {
+            log.info("Atualização do usuário com o ID: {}", user.getId());
+            return ResponseEntity.ok(
+                    userService.updateUser(
+                            userService.getUserByEmail(user.getEmail())));
+        });
     }
 
     @Operation(summary = "Atualizar a role de um usuário")
@@ -146,21 +101,11 @@ public class AppUserController {
     })
     @PostMapping("/role")
     public ResponseEntity<?> updateUserRole(@RequestBody UpdateUserRoleDto user) {
-        MDC.put(TITLE,"Atualização da função do usuário");
-        try {
+        return RequestExceptionHandler.handleRequest("Atualização da função do usuário", () -> {
             log.info("Atualização da role do usuário com id:{} para role: {}", user.getId(), user.getRole());
             return ResponseEntity.ok(
                     userService.updateUserRole(user));
-        }catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        });
     }
 
     @Operation(summary = "Deleção de um Usuário")
@@ -174,20 +119,10 @@ public class AppUserController {
 
     @DeleteMapping()
     public ResponseEntity<?> deleteUser(@RequestParam Integer id) {
-        MDC.put(TITLE,"Atualização de usuário");
-        try {
+        return RequestExceptionHandler.handleRequest("Remoção de usuário", () -> {
             log.info("Remoção do usuário com o ID {}", id);
             return ResponseEntity.ok(userService.deleteUser(id));
-        }catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        });
     }
 
 }

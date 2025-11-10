@@ -3,6 +3,8 @@ package com.pardal.app.controllers;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.InsightsFilterDto;
 import com.pardal.app.service.insights.InsightsService;
+import com.pardal.app.util.RequestExceptionHandler;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,12 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.MDC;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.NoSuchElementException;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
@@ -25,8 +24,6 @@ import java.util.NoSuchElementException;
 public class InsightsController {
 
     private final InsightsService insightsService;
-    private final String TITLE = "title";
-    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Busca todos os insights centralizados (SLA, Sazonalidade, Produto, Pareto)",
             description = "Retorna um objeto com todos os dados necessários para a aba Insights, filtrados por Cliente.")
@@ -40,22 +37,12 @@ public class InsightsController {
     public ResponseEntity<?> getAllInsightsData(
             @Parameter(description = "DTO de filtro. O 'clientId' é opcional/nulo para a opção 'Todos'.")
             InsightsFilterDto filters
-    ) {
-        MDC.put(TITLE,"Busca Insights");
-        try {
+            ) {
+        return RequestExceptionHandler.handleRequest("Busca Insights", () -> {
             InsightsDataDto response = insightsService.getAllInsightsData(filters);
-            log.info("Buscar por insight feita com sucesso.");
+            log.info("Busca por insight feita com sucesso.");
             return ResponseEntity.ok(response);
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        });
     }
 
 }

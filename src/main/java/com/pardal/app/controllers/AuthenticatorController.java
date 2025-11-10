@@ -5,15 +5,14 @@ import com.pardal.app.entity.dto.auth.LoginRequestDto;
 import com.pardal.app.entity.dto.auth.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.auth.SignupRequestDto;
 import com.pardal.app.service.auth.AuthService;
+import com.pardal.app.util.RequestExceptionHandler;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.NoSuchElementException;
-
-import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +24,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticatorController {
 
     private final  AuthService authService;
-    private final String TITLE = "title";
-    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Cadastro de Usuário")
     @ApiResponses(value = {
@@ -37,22 +34,12 @@ public class AuthenticatorController {
     })
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto request) {
-        MDC.put(TITLE,"Registro de usuário");
-        try {
+        return RequestExceptionHandler.handleRequest("Registro de usuário", () -> {
             ResponseUserCreatedDto response = authService.signup(request);
             log.info("Usuário com email: {} foi registrado com sucesso", response.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
-    };
+        });
+    }
 
     @Operation(summary = "Valida o usuário criado via o token")
     @ApiResponses(value = {
@@ -63,22 +50,13 @@ public class AuthenticatorController {
     })
     @PostMapping("/verify")
     public ResponseEntity<?> verify(@RequestBody String token) {
-        MDC.put(TITLE,"Verificação de token");
-        try{
+        return RequestExceptionHandler.handleRequest("Verificação de token", () -> {
             ResponseUserCreatedDto response = authService.verify(token.substring(0, token.length() - 1));
             log.info("Verification feita com sucesso");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        });
     }
+
     @Operation(summary = "Login de Usuário")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login realizado com sucesso."),
@@ -88,20 +66,10 @@ public class AuthenticatorController {
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto request) {
-        MDC.put(TITLE,"Login");
-        try {
+        return RequestExceptionHandler.handleRequest("Login", () -> {
             JwtAuthenticationResponseDto response = authService.login(request);
-            log.info("Login  do usuário {} feito com sucesso", request.getEmail());
+            log.info("Login do usuário {} feito com sucesso", request.getEmail());
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(SERVER_ERROR + runtimeException.getMessage());
-        }finally {
-            MDC.remove(TITLE);
-        }
+        });
     }
 }
