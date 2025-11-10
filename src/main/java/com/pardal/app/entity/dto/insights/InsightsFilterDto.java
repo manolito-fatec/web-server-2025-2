@@ -1,6 +1,7 @@
 package com.pardal.app.entity.dto.insights;
 
-import com.pardal.app.repository.specification.tickets.TicketsFilters;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class InsightsFilterDto extends TicketsFilters {
-    private Integer customerId; // se null = todos os clientes
-    // add aqui outros filtros se precisar ou tiver faltando algum
+public class InsightsFilterDto {
+    private List<Integer> customerIds;
+    private List<Integer> productIds;
 }
