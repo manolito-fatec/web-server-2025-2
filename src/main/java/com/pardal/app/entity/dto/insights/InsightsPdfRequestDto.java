@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
+
 @EqualsAndHashCode(callSuper = true)
 public class InsightsPdfRequestDto extends InsightsFilterDto{
     private List<String> graphImagesBase64;

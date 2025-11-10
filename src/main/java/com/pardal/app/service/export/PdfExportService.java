@@ -43,18 +43,16 @@ public class PdfExportService {
     }
 
     private void setupTitlesToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.BLACK);
-        document.add(new Paragraph(request.getReportTitle() != null ? request.getReportTitle() : "Insights Report", titleFont));
+        Font filterFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
 
-        Font subTitleFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, BaseColor.GRAY);
-        document.add(new Paragraph("Generated: " + java.time.LocalDateTime.now(), subTitleFont));
-        document.add(new Paragraph("\n"));
-    }
+        document.add(new Paragraph("Applied Filters:", filterFont));
 
-    private void addFiltersToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
-        document.add(new Paragraph("Applied Filters: Customer ID - " +
-                (request.getCustomerId() != null ? request.getCustomerId() : "All") +
-                "...", new Font(Font.FontFamily.HELVETICA, 10)));
+        String customerIdsStr = formatIdList(request.getCustomerIds());
+        document.add(new Paragraph("  Customer IDs: " + customerIdsStr, filterFont));
+
+        String productIdsStr = formatIdList(request.getProductIds());
+        document.add(new Paragraph("  Product IDs: " + productIdsStr, filterFont));
+
         document.add(new Paragraph("\n"));
     }
 
@@ -91,6 +89,22 @@ public class PdfExportService {
             document.newPage();
         }
         return graphImage;
+    }
+
+    // formata lista em string separado por virgula. All pra tudo e vazio se null.
+    private String formatIdList(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return "All";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            sb.append(ids.get(i));
+            if (i < ids.size() - 1) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
     }
 
 }
