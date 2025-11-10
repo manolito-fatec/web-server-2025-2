@@ -43,6 +43,15 @@ public class PdfExportService {
     }
 
     private void setupTitlesToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
+        Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.BLACK);
+        document.add(new Paragraph(request.getReportTitle() != null ? request.getReportTitle() : "Insights Report", titleFont));
+
+        Font subTitleFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, BaseColor.GRAY);
+        document.add(new Paragraph("Generated: " + java.time.LocalDateTime.now(), subTitleFont));
+        document.add(new Paragraph("\n"));
+    }
+
+    private void addFiltersToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
         Font filterFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
 
         document.add(new Paragraph("Applied Filters:", filterFont));
