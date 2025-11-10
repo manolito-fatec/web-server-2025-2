@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -53,14 +52,7 @@ public class InsightsController {
             InsightsDataDto response = insightsService.getAllInsightsData(filters);
             log.info("Busca por insight feita com sucesso.");
             return ResponseEntity.ok(response);
-        } catch (NoSuchElementException noSuchElementException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
-        }
+        });
     }
 
     @Operation(summary = "Exporta todos os insights filtrados para CSV",
