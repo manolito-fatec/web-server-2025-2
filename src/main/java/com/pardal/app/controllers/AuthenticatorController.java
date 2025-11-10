@@ -26,6 +26,7 @@ public class AuthenticatorController {
 
     private final  AuthService authService;
     private final String TITLE = "title";
+    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Cadastro de Usuário")
     @ApiResponses(value = {
@@ -47,7 +48,7 @@ public class AuthenticatorController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -73,7 +74,7 @@ public class AuthenticatorController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -98,7 +99,7 @@ public class AuthenticatorController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }

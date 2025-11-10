@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 public class AppUserController {
     private final AppUserService userService;
     private final String TITLE = "title";
+    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Busca de Usuário por ID")
     @ApiResponses(value = {
@@ -47,7 +48,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -74,7 +75,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -101,7 +102,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -129,7 +130,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -156,7 +157,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
@@ -170,6 +171,7 @@ public class AppUserController {
             @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
+
     @DeleteMapping()
     public ResponseEntity<?> deleteUser(@RequestParam Integer id) {
         MDC.put(TITLE,"Atualização de usuário");
@@ -182,7 +184,7 @@ public class AppUserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }

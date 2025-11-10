@@ -26,6 +26,7 @@ public class MetricsController {
 
     private final MetricsService metricsService;
     private final String TITLE = "title";
+    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Busca dados de filtro de forma paginada", description = "Retorna uma lista paginada de dados de filtro com base nos parâmetros 'page' e 'size'.")
     @ApiResponses(value = {
@@ -51,7 +52,7 @@ public class MetricsController {
         } catch (IllegalArgumentException illegalArgumentException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(SERVER_ERROR + runtimeException.getMessage());
         }
 
     }
@@ -78,7 +79,7 @@ public class MetricsController {
         } catch (IllegalArgumentException illegalArgumentException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error " + runtimeException.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }

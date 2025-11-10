@@ -26,6 +26,7 @@ public class InsightsController {
 
     private final InsightsService insightsService;
     private final String TITLE = "title";
+    private final String SERVER_ERROR = "Internal Server Error:";
 
     @Operation(summary = "Busca todos os insights centralizados (SLA, Sazonalidade, Produto, Pareto)",
             description = "Retorna um objeto com todos os dados necessários para a aba Insights, filtrados por Cliente.")
@@ -51,7 +52,7 @@ public class InsightsController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException runtimeException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + runtimeException.getMessage());
+                    .body(SERVER_ERROR + runtimeException.getMessage());
         }finally {
             MDC.remove(TITLE);
         }
