@@ -15,6 +15,8 @@ import java.util.List;
 @Service
 public class PdfExportService {
 
+    final Font.FontFamily DEFAULT_FONT_FAMILY = Font.FontFamily.HELVETICA;
+
     /**
      * Generates a PDF containing the captured graph images and returns it as a byte array.
      * @param request The DTO containing filters and Base64 encoded images.
@@ -43,16 +45,16 @@ public class PdfExportService {
     }
 
     private void setupTitlesToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.BLACK);
+        Font titleFont = new Font(DEFAULT_FONT_FAMILY, 18, Font.BOLD, BaseColor.BLACK);
         document.add(new Paragraph(request.getReportTitle() != null ? request.getReportTitle() : "Insights Report", titleFont));
 
-        Font subTitleFont = new Font(Font.FontFamily.HELVETICA, 10, Font.ITALIC, BaseColor.GRAY);
+        Font subTitleFont = new Font(DEFAULT_FONT_FAMILY, 10, Font.ITALIC, BaseColor.GRAY);
         document.add(new Paragraph("Generated: " + java.time.LocalDateTime.now(), subTitleFont));
         document.add(new Paragraph("\n"));
     }
 
     private void addFiltersToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
-        Font filterFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
+        Font filterFont = new Font(DEFAULT_FONT_FAMILY, 10, Font.NORMAL, BaseColor.BLACK);
 
         document.add(new Paragraph("Applied Filters:", filterFont));
 
@@ -78,7 +80,7 @@ public class PdfExportService {
                     System.err.println("Error adding image to PDF: " + e.getMessage());
                     document.add(new Paragraph(
                             "[Image failed to load: " + e.getMessage() + "]",
-                            new Font(Font.FontFamily.HELVETICA, 8, Font.ITALIC, BaseColor.RED)));
+                            new Font(DEFAULT_FONT_FAMILY, 8, Font.ITALIC, BaseColor.RED)));
                 }
             }
         }
@@ -100,7 +102,13 @@ public class PdfExportService {
         return graphImage;
     }
 
-    // formata lista em string separado por virgula. All pra tudo e vazio se null.
+    /**
+     * Formats a list of Integer IDs into a comma-separated String.
+     * If the list is null or empty, it returns the string "All".
+     *
+     * @param ids The list of Integer IDs to format.
+     * @return A comma-separated String of IDs, or "All" if the list is null or empty.
+     */
     private String formatIdList(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
             return "All";
