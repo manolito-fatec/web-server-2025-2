@@ -75,10 +75,10 @@ public class CsvExportService {
         ZipEntry entry = new ZipEntry(entryName);
         zos.putNextEntry(entry);
 
-        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8))) {
-            this.writeCsv(writer, dataList, type);
-            writer.flush();
-        }
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
+
+        this.writeCsv(writer, dataList, type);
+        writer.flush();
 
         zos.closeEntry();
     }
