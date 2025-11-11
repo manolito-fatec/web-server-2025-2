@@ -121,20 +121,20 @@ class AppUserServiceTest {
     @Test
     @DisplayName("Should return user details when email is found")
     void loadUserByUsername_whenValidEmail_shouldReturnUserDetails() {
-        when(appUserRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+        when(appUserRepository.findByEncryptedEmail("test@example.com")).thenReturn(Optional.of(testUser));
 
         var result = appUserService.loadUserByUsername("test@example.com");
 
         assertNotNull(result);
         assertEquals(testUser, result);
 
-        verify(appUserRepository, times(1)).findByEmail("test@example.com");
+        verify(appUserRepository, times(1)).findByEncryptedEmail("test@example.com");
     }
 
     @Test
     @DisplayName("Should throw UsernameNotFoundException when email not found")
     void loadUserByUsername_whenEmailNotFound_shouldThrowException() {
-        when(appUserRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
+        when(appUserRepository.findByEncryptedEmail("notfound@example.com")).thenReturn(Optional.empty());
 
         UsernameNotFoundException thrown = assertThrows(
                 UsernameNotFoundException.class,
@@ -144,7 +144,7 @@ class AppUserServiceTest {
 
         assertTrue(thrown.getMessage().contains("User not found with email"));
 
-        verify(appUserRepository, times(1)).findByEmail("notfound@example.com");
+        verify(appUserRepository, times(1)).findByEncryptedEmail("notfound@example.com");
     }
 
     @Test
@@ -223,7 +223,7 @@ class AppUserServiceTest {
     @Test
     @DisplayName("Should retrieve user by email successfully")
     void getUserByEmail_whenValidEmail_shouldReturnUser() {
-        when(appUserRepository.getAppUserByEmail("test@example.com"))
+        when(appUserRepository.getAppUserByEncryptedEmail("test@example.com"))
                 .thenReturn(Optional.of(testUser));
 
         AppUser result = appUserService.getUserByEmail("test@example.com");
@@ -232,13 +232,13 @@ class AppUserServiceTest {
         assertEquals(1, result.getId());
         assertEquals("test@example.com", result.getEmail());
 
-        verify(appUserRepository, times(1)).getAppUserByEmail("test@example.com");
+        verify(appUserRepository, times(1)).getAppUserByEncryptedEmail("test@example.com");
     }
 
     @Test
     @DisplayName("Should throw IllegalArgumentException when email not found")
     void getUserByEmail_whenEmailNotFound_shouldThrowException() {
-        when(appUserRepository.getAppUserByEmail("notfound@example.com"))
+        when(appUserRepository.getAppUserByEncryptedEmail("notfound@example.com"))
                 .thenReturn(Optional.empty());
 
         IllegalArgumentException thrown = assertThrows(
@@ -249,7 +249,7 @@ class AppUserServiceTest {
 
         assertEquals("User not found with email: notfound@example.com", thrown.getMessage());
 
-        verify(appUserRepository, times(1)).getAppUserByEmail("notfound@example.com");
+        verify(appUserRepository, times(1)).getAppUserByEncryptedEmail("notfound@example.com");
     }
 
     @Test
