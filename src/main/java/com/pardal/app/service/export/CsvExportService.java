@@ -46,6 +46,8 @@ public class CsvExportService {
             beanToCsv.write(dataList);
         } catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
             throw new RuntimeException("CSV Generation Error", e);
+        } finally {
+            csvWriter.close();
         }
     }
 
