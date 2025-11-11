@@ -44,10 +44,9 @@ public class CsvExportService {
         try {
             StatefulBeanToCsv<T> beanToCsv = new StatefulBeanToCsvBuilder<T>(csvWriter).build();
             beanToCsv.write(dataList);
+            csvWriter.flush();
         } catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
             throw new RuntimeException("CSV Generation Error", e);
-        } finally {
-            csvWriter.close();
         }
     }
 
