@@ -253,7 +253,12 @@ public class AppUserService implements UserDetailsService {
     public UserInformationDto getAllInformationAboutUser(Integer id)
     {
         UserInformationDto userInfo = new UserInformationDto();
-        userInfo.setAuditInfomation(getAuditInformation());
+        var user = getUserById(id);
+
+        if(user.getRole().getRlName().equals("Admin"))
+        {
+            userInfo.setAuditInfomation(getAuditInformation());
+        }
         return userInfo;
     }
 
