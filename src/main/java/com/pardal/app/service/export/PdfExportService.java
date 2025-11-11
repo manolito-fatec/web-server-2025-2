@@ -9,13 +9,17 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 
 @Service
 public class PdfExportService {
 
-    final Font.FontFamily DEFAULT_FONT_FAMILY = Font.FontFamily.HELVETICA;
+    private static final Font.FontFamily DEFAULT_FONT_FAMILY = Font.FontFamily.HELVETICA;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
 
     /**
      * Generates a PDF containing the captured graph images and returns it as a byte array.
@@ -49,20 +53,22 @@ public class PdfExportService {
         document.add(new Paragraph(request.getReportTitle() != null ? request.getReportTitle() : "Insights Report", titleFont));
 
         Font subTitleFont = new Font(DEFAULT_FONT_FAMILY, 10, Font.ITALIC, BaseColor.GRAY);
-        document.add(new Paragraph("Generated: " + java.time.LocalDateTime.now(), subTitleFont));
+        String formattedDateTime = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+
+        document.add(new Paragraph("Gerado em: " + formattedDateTime, subTitleFont));
         document.add(new Paragraph("\n"));
     }
 
     private void addFiltersToDocument(InsightsPdfRequestDto request, Document document) throws DocumentException {
         Font filterFont = new Font(DEFAULT_FONT_FAMILY, 10, Font.NORMAL, BaseColor.BLACK);
 
-        document.add(new Paragraph("Applied Filters:", filterFont));
+        document.add(new Paragraph("Filtros aplicados:", filterFont));
 
         String customerIdsStr = formatIdList(request.getCustomerIds());
-        document.add(new Paragraph("  Customer IDs: " + customerIdsStr, filterFont));
+        document.add(new Paragraph("  IDs de Usuário: " + customerIdsStr, filterFont));
 
         String productIdsStr = formatIdList(request.getProductIds());
-        document.add(new Paragraph("  Product IDs: " + productIdsStr, filterFont));
+        document.add(new Paragraph("  IDs de Produto: " + productIdsStr, filterFont));
 
         document.add(new Paragraph("\n"));
     }
