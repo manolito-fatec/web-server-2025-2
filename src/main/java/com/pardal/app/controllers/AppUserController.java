@@ -116,12 +116,27 @@ public class AppUserController {
             @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
-
     @DeleteMapping()
     public ResponseEntity<?> deleteUser(@RequestParam Integer id) {
         return RequestExceptionHandler.handleRequest("Remoção de usuário", () -> {
             log.info("Remoção do usuário com o ID {}", id);
             return ResponseEntity.ok(userService.deleteUser(id));
+        });
+    }
+
+    @Operation(summary = "Buscar informações relacionadas a tela de perfil do usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com Successo."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "404", description = "Nenhum usuário encontrado."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
+    })
+    @GetMapping(value = "/information/{userId}" )
+    public ResponseEntity<?> getInfoAboutUserAndAudit(@PathVariable Integer userId) {
+        return RequestExceptionHandler.handleRequest("Buscar informações relacionadas a tela de perfil do usuário", () -> {
+            log.info("Buscar informação do pefil do usuário com o id: {}", userId);
+            return ResponseEntity.ok(userService.getAllInformationAboutUser(userId));
         });
     }
 
