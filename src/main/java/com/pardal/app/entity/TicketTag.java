@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "ticket_tags")
+@Table(name = "ticket_tags", schema = "public")
 public class TicketTag {
     @EmbeddedId
     private TicketTagId id;
