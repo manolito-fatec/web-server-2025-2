@@ -85,9 +85,7 @@ public class AppUserController {
     public ResponseEntity<?> updateUser(@RequestBody AppUserDto user) {
         return RequestExceptionHandler.handleRequest("Atualização de usuário", () -> {
             log.info("Atualização do usuário com o ID: {}", user.getId());
-            return ResponseEntity.ok(
-                    userService.updateUser(
-                            userService.getUserByEmail(user.getEmail())));
+            return ResponseEntity.ok(userService.updateProfile(user));
         });
     }
 

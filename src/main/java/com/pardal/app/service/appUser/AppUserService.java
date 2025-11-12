@@ -179,6 +179,26 @@ public class AppUserService implements UserDetailsService {
         return convertUserToDto(userRepository.save(appUser));
     }
 
+    /**
+     Updates a user's profile data (name and email).
+     <p>
+     This method retrieves a user by their ID, updates their name and email
+     based on the data provided in the DTO, and saves the changes.
+     </p>
+     @param appUserDto the DTO containing the ID and new data (name, email)
+     @return the updated user DTO
+     @throws NoSuchElementException if no user is found with the given ID
+     @see AppUserDto*/
+    public AppUserDto updateProfile(AppUserDto appUserDto) {
+        AppUser existingUser = appUserRepository.findById(appUserDto.getId()).orElseThrow(() -> new NoSuchElementException("Usuário não encontrado com ID: " + appUserDto.getId()));
+
+        existingUser.setName(appUserDto.getName());
+
+        AppUser savedUser = appUserRepository.save(existingUser);
+
+        return convertUserToDto(savedUser);
+    }
+
     public AppUser getUser(String token) {
         Optional<AppUser> appuser = appUserRepository.getAppUserByVerificationToken(token);
         if (appuser.isEmpty()) {
@@ -260,8 +280,10 @@ public class AppUserService implements UserDetailsService {
             userInfo.setAuditInfomation(getAuditInformation());
         }
 
-        Optional<AppUserDto> appUser = Optional.of(getUserById(id));
-        appUser.ifPresent(userInfo::setAppUser);
+        Optional<AppUserDto> appUserDto = Optional.of(getUserById(id));
+        if (appUserDto.isPresent()) {
+            filterPrivateInformation(appUserDto.get(), userInfo);
+        }
         return userInfo;
     }
 
@@ -294,5 +316,18 @@ public class AppUserService implements UserDetailsService {
             log.error("Error ao tentar buscar a lista de logs");
             return Collections.emptyList();
         }
+    }
+
+    private UserInformationDto filterPrivateInformation (AppUserDto appUserDto, UserInformationDto userInformationDto) {
+        AppUserDto userDto = AppUserDto.builder()
+                .id(appUserDto.getId())
+                .email(appUserDto.getEmail())
+                .phone(appUserDto.getPhone())
+                .name(appUserDto.getName())
+                .role(appUserDto.getRole())
+                .build();
+
+        userInformationDto.setAppUser(userDto);
+        return userInformationDto;
     }
 }
