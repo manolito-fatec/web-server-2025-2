@@ -20,4 +20,8 @@ public class DekService {
     public Optional<DataEncryptionKey> findByUserId(Integer user_id) {
         return repository.findByReferenceId(user_id);
     }
+
+    public DataEncryptionKey updateDek(DataEncryptionKey dataEncryptionKey) {
+        return repository.save(dataEncryptionKey);
+    }
 }

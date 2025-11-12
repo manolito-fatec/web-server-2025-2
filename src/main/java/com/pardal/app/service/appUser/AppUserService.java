@@ -231,7 +231,11 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto updateProfile(AppUserDto appUserDto) {
         AppUser existingUser = appUserRepository.findById(appUserDto.getId()).orElseThrow(() -> new NoSuchElementException("Usuário não encontrado com ID: " + appUserDto.getId()));
 
-        existingUser.setName(appUserDto.getName());
+        EncryptedData encryptedName = vaultEncryptionService.encryptWithEnvelope(appUserDto.getName());
+        DataEncryptionKey userDek = dekService.findByUserId(appUserDto.getId()).get();
+        userDek.setNameDek(encryptedName.getEncryptedDEK());
+        dekService.updateDek(userDek);
+        existingUser.setEncryptedName(encryptedName.getEncryptedValue());
 
         AppUser savedUser = appUserRepository.save(existingUser);
 
