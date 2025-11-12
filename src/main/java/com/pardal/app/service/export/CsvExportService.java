@@ -12,6 +12,8 @@ import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
 import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import com.pardal.app.entity.log.LogEntry;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @Service
+@Slf4j
 public class CsvExportService {
 
     /**
@@ -48,6 +51,7 @@ public class CsvExportService {
             beanToCsv.write(dataList);
             csvWriter.flush();
         } catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
+            log.error("Erro ao gerar CSV");
             throw new RuntimeException("CSV Generation Error", e);
         }
     }
@@ -65,6 +69,7 @@ public class CsvExportService {
             addCsvToZip(zos, "product_insights_data.csv", data.getProductInsightsData(), TicketInsight.class);
             addCsvToZip(zos, "pareto_subcategory_data.csv", data.getParetoInsightData(), TicketsBySubcategoryCountDto.class);
         } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP");
             throw new IOException("Failed to generate CSV inside ZIP file.", e);
         }
     }
@@ -86,6 +91,7 @@ public class CsvExportService {
         try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
             addCsvToZip(zos, "augit_log.csv", data, LogEntry.class);
         } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP");
             throw new IOException("Failed to generate CSV inside ZIP file.", e);
         }
     }
