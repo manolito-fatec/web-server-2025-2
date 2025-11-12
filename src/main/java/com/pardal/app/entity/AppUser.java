@@ -43,16 +43,6 @@ public class AppUser implements UserDetails {
     @Column(name = "usr_encryptedPhone", nullable = false, length = 1000)
     private String encryptedPhone;
 
-    @Column(name = "usr_nameDEK", length = 500)
-    private String nameDEK;
-
-    @Column(name = "usr_emailDEK", length = 500)
-    private String emailDEK;
-
-    @Column(name = "usr_phoneDEK", length = 500)
-    private String phoneDEK;
-
-
     @NotNull
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "rl_id", nullable = false)
