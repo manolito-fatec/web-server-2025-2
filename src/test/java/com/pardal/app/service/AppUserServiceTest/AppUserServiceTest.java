@@ -1,4 +1,4 @@
-package com.pardal.app.service.appUser;
+package com.pardal.app.service.AppUserServiceTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -13,6 +13,8 @@ import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
+import com.pardal.app.service.appUser.AppUserService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

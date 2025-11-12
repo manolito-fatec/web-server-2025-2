@@ -83,7 +83,7 @@ class ForecasterLogger:
     def __init__(self, mongo_collection):
         self.collection = mongo_collection
 
-    def log_summary_forecaster(self, start_time, status, forecaster_generated_count=0, files_processed_count=0,
+    def log_summary_forecaster(self, start_time, status, forecaster_generated_count=0,
                              error_message=None):
         """Logs a summary document at the end of the forecaster pipeline execution."""
         end_time = datetime.datetime.now(datetime.timezone.utc)
@@ -92,7 +92,6 @@ class ForecasterLogger:
                        "actor": {"type": "SYSTEM_SCRIPT", "scriptName": "etl/forecaster/pipeline.py"},
                        "details": {"status": status, "startTime": start_time, "endTime": end_time,
                                    "durationInSeconds": (end_time - start_time).total_seconds(),
-                                   "filesProcessed": files_processed_count,
                                    "forecasterGenerated": forecaster_generated_count,
                                    "message": f"forecaster generation pipeline execution completed. Status: {status}"}}
         if error_message:

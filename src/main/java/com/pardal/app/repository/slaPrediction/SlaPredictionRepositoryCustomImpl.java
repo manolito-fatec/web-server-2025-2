@@ -26,8 +26,18 @@ public class SlaPredictionRepositoryCustomImpl implements SlaPredictionRepositor
     }
 
     @Override
-    public List<SlaPredictionResponseDto> findTop3ByCompanyIdGroupedBySubcategory(Integer companyId) {
-        MatchOperation matchStage = match(Criteria.where("company_id").is(companyId));
+    public List<SlaPredictionResponseDto> findTop3ByCompanyIdGroupedBySubcategory(List<Integer> companyIdList, List<Integer> productIdList) {
+        Criteria criteria = new Criteria();
+
+        if (companyIdList != null && !companyIdList.isEmpty()) {
+            criteria.and("company_id").in(companyIdList);
+        }
+ 
+        if (productIdList != null && !productIdList.isEmpty()) {
+            criteria.and("product_id").in(productIdList);
+        }
+
+        MatchOperation matchStage = match(criteria);
 
         GroupOperation groupStage = group("subcategory_id", "subcategory_name")
                 .avg("sla_breach_probability").as("averageRiskProbability");

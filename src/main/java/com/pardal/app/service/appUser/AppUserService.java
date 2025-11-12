@@ -3,7 +3,10 @@ package com.pardal.app.service.appUser;
 import com.pardal.app.entity.AppRole;
 import com.pardal.app.entity.AppUser;
 import com.pardal.app.entity.dto.AppUserDto;
+import com.pardal.app.entity.dto.AuditDto;
 import com.pardal.app.entity.dto.UpdateUserRoleDto;
+import com.pardal.app.entity.dto.UserInformationDto;
+import com.pardal.app.entity.log.LogEntry;
 import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
@@ -14,6 +17,11 @@ import com.pardal.dek.entity.DataEncryptionKey;
 import com.pardal.app.service.dek.DekService;
 import lombok.RequiredArgsConstructor;
 import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
+import com.pardal.app.repository.logging.LogEntryRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,8 +30,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
 
@@ -31,6 +41,7 @@ public class AppUserService implements UserDetailsService {
     private final AppRoleRepository appRoleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LogEntryRepository logRepository;
     private final EmailService emailService;
     private final VaultEncryptionService vaultEncryptionService;
     private final HashService hashService;
@@ -88,6 +99,7 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto getUserById(Integer id) {
         Optional<AppUser> user = appUserRepository.findById(id);
         if (user.isEmpty()) {
+            log.error("User with ID: "+id+" Doesn't exist");
             throw new NoSuchElementException();
         }
         return convertUserToDto(user.get());
@@ -206,6 +218,26 @@ public class AppUserService implements UserDetailsService {
         return convertUserToDto(newUser);
     }
 
+    /**
+     Updates a user's profile data (name and email).
+     <p>
+     This method retrieves a user by their ID, updates their name and email
+     based on the data provided in the DTO, and saves the changes.
+     </p>
+     @param appUserDto the DTO containing the ID and new data (name, email)
+     @return the updated user DTO
+     @throws NoSuchElementException if no user is found with the given ID
+     @see AppUserDto*/
+    public AppUserDto updateProfile(AppUserDto appUserDto) {
+        AppUser existingUser = appUserRepository.findById(appUserDto.getId()).orElseThrow(() -> new NoSuchElementException("Usuário não encontrado com ID: " + appUserDto.getId()));
+
+        existingUser.setName(appUserDto.getName());
+
+        AppUser savedUser = appUserRepository.save(existingUser);
+
+        return convertUserToDto(savedUser);
+    }
+
     public AppUser getUser(String token) {
         Optional<AppUser> appuser = appUserRepository.getAppUserByVerificationToken(token);
         if (appuser.isEmpty()) {
@@ -264,5 +296,77 @@ public class AppUserService implements UserDetailsService {
         user.get().setExpireDate(LocalDate.now());
         updateUser(user.get());
         return convertUserToDto(user.get());
+    }
+
+   /**
+    * Retrieves all essential information for a specific user.
+    * * This method creates a new {@code UserInformationDto}, populates its 
+    * audit information by calling {@code getAuditInformation()}, and returns the resulting DTO. 
+    * Currently, it only sets the audit information.
+    *
+    * @param id The unique identifier (ID) of the user whose information is to be retrieved.
+    * @author paulo arantes
+    * @return A {@code UserInformationDto} object containing the requested user's information, 
+    * including audit details.
+    */
+    public UserInformationDto getAllInformationAboutUser(Integer id)
+    {
+        UserInformationDto userInfo = new UserInformationDto();
+        var user = getUserById(id);
+
+        if(user.getRole().getRlName().equals("Admin"))
+        {
+            userInfo.setAuditInfomation(getAuditInformation());
+        }
+
+        Optional<AppUserDto> appUserDto = Optional.of(getUserById(id));
+        if (appUserDto.isPresent()) {
+            filterPrivateInformation(appUserDto.get(), userInfo);
+        }
+        return userInfo;
+    }
+
+    /**
+     * Retrieves the most recent audit information (logs) from the system.
+     * * <p>It fetches the top 5 log entries that have an associated HTTP method
+     * and converts them into a list of {@code AuditDto} objects. 
+     * If an error occurs during log retrieval, it logs the error and returns an 
+     * empty list.</p>
+     *
+     * @return A {@code List<AuditDto>} containing the top 5 recent audit entries.
+     * @author paulo arantes
+     * Returns an empty list if no logs are found or if an exception occurs.
+     */
+    private List<AuditDto> getAuditInformation()
+    {
+        try {
+            List<LogEntry> logs = logRepository.findTop5WithHttpMethod();
+            return logs.stream().map(log -> {
+                AuditDto dto = new AuditDto();
+                dto.setEvent(log.getTitle());
+                dto.setUser(log.getUserEmail());
+                dto.setDate(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
+                dto.setLocale(log.getRemoteIp());
+                dto.setDetails(log.getMessage());
+                return dto;
+            }).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("Error ao tentar buscar a lista de logs");
+            return Collections.emptyList();
+        }
+    }
+
+    private UserInformationDto filterPrivateInformation (AppUserDto appUserDto, UserInformationDto userInformationDto) {
+        AppUserDto userDto = AppUserDto.builder()
+                .id(appUserDto.getId())
+                .email(appUserDto.getEmail())
+                .phone(appUserDto.getPhone())
+                .name(appUserDto.getName())
+                .role(appUserDto.getRole())
+                .build();
+
+        userInformationDto.setAppUser(userDto);
+        return userInformationDto;
     }
 }
