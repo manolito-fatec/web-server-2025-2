@@ -330,4 +330,24 @@ public class AppUserService implements UserDetailsService {
         userInformationDto.setAppUser(userDto);
         return userInformationDto;
     }
+
+    /**
+     * Retrieves a list of all audit logs from the repository.
+     *
+     * If an error occurs during retrieval, it logs the error and
+     * returns an empty list to prevent application failure.
+     *
+     * @author paulo arantes
+     * @return A {@code List<LogEntry>} containing all audit logs,
+     * or an empty list if an exception occurs.
+     */
+    public List<LogEntry> getAllAuditLog()
+    {
+        try {
+            return logRepository.findAllAuditLogs();
+        }catch (Exception e) {
+            log.error("Erro ao tentar buscar a lista de logs");
+            return Collections.emptyList();
+        }
+    }
 }
