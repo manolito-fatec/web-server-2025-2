@@ -259,6 +259,9 @@ public class AppUserService implements UserDetailsService {
         {
             userInfo.setAuditInfomation(getAuditInformation());
         }
+
+        Optional<AppUserDto> appUser = Optional.of(getUserById(id));
+        appUser.ifPresent(userInfo::setAppUser);
         return userInfo;
     }
 

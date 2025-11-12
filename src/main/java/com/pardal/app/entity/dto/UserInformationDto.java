@@ -14,4 +14,5 @@ import lombok.Setter;
 public class UserInformationDto
 {
     private List<AuditDto> auditInfomation;
+    private AppUserDto appUser;
 }
