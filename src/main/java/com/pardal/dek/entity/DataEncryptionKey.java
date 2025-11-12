@@ -2,6 +2,7 @@ package com.pardal.dek.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +10,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "data_encryption_key", schema = "voucher")
+@Builder
+@Table(name = "data_encryption_key", schema = "public")
 public class DataEncryptionKey {
 
     @Id
@@ -26,5 +28,5 @@ public class DataEncryptionKey {
     private String phoneDek;
 
     @Column(name = "reference_id")
-    private String referenceId;
+    private Integer referenceId;
 }
