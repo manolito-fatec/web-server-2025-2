@@ -24,7 +24,7 @@ import java.util.Map;
 @EnableTransactionManagement
 @EnableJpaRepositories(
         entityManagerFactoryRef = "dekEntityManagerFactory",
-        transactionManagerRef = "DekTransactionManager",
+        transactionManagerRef = "dekTransactionManager",
         basePackages = { "com.pardal.dek.repository" }
 )
 public class DekDbConfig {
