@@ -255,7 +255,7 @@ class AppUserServiceTest {
         assertNotNull(result);
         verify(appUserRepository, times(1)).save(any(AppUser.class));
         verify(dekService, times(1)).save(any(DataEncryptionKey.class));
-        verify(emailService, times(1)).sendValidationEmail(anyString(), anyString());
+        verify(emailService, times(1)).sendPreRegistrationEmail(anyString());
     }
 
     @Test
