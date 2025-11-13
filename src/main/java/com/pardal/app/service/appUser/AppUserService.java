@@ -232,8 +232,14 @@ public class AppUserService implements UserDetailsService {
         AppUser user =  getUserAllAttributes(appUserId);
         user.setEmailVerified(true);
         user.setExpireDate(null);
-        emailService.sendApprovalEmail(user.getEmail());
-        return convertUserToDto(user);
+        Optional<DataEncryptionKey> deks = dekService.findByUserId(appUserId);
+        if (deks.isPresent()) {
+            emailService.sendApprovalEmail(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                    deks.get().getEmailDek(),user.getEncryptedEmail()
+            )));
+            return convertUserToDto(user);
+        }
+        return null;
     }
 
     /**
