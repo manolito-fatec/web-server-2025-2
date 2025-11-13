@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -34,7 +35,10 @@ public class VaultEncryptionService {
 
     private static final String TRANSIT_ENCRYPT_PATH = "/v1/transit/encrypt/user-encryption-key";
     private static final String TRANSIT_DECRYPT_PATH = "/v1/transit/decrypt/user-encryption-key";
-    private static final String ALGORITHM = "AES";
+
+    private static final String ALGORITHM_AES = "AES";
+    private static final String ALGORITHM_CIPHER = "AES/CBC/PKCS5Padding";
+    private static final int IV_LENGTH = 16;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -104,7 +108,7 @@ public class VaultEncryptionService {
      * @throws Exception If the AES algorithm is unavailable or key generation fails.
      */
     private SecretKey generateDEK() throws Exception {
-        KeyGenerator keyGen = KeyGenerator.getInstance(ALGORITHM);
+        KeyGenerator keyGen = KeyGenerator.getInstance(ALGORITHM_AES);
         keyGen.init(256, new SecureRandom());
         return keyGen.generateKey();
     }
@@ -112,33 +116,56 @@ public class VaultEncryptionService {
     /**
      * Encrypts the provided plaintext using the given DEK (Data Encryption Key).
      * <p>
-     * The resulting ciphertext is encoded in Base64 for safe transmission/storage.
+     * This implementation uses AES/CBC/PKCS5Padding with a random 16-byte IV.
+     * The final output is Base64-encoded [IV + Ciphertext].
      * </p>
      *
      * @param plaintext The data string to encrypt.
      * @param dek The symmetric secret key to use for encryption.
-     * @return The Base64-encoded encrypted string.
+     * @return The Base64-encoded string: [IV + Ciphertext].
      * @throws Exception If the Cipher instance cannot be initialized or the encryption fails.
      */
     private String encryptWithDEK(String plaintext, SecretKey dek) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, dek);
-        byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
-        return Base64.getEncoder().encodeToString(encryptedBytes);
-    }
+        byte[] iv = new byte[IV_LENGTH];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(iv);
+        IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
+        Cipher cipher = Cipher.getInstance(ALGORITHM_CIPHER);
+        cipher.init(Cipher.ENCRYPT_MODE, dek, ivSpec);
+
+        byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
+
+        byte[] combined = new byte[IV_LENGTH + encryptedBytes.length];
+        System.arraycopy(iv, 0, combined, 0, IV_LENGTH);
+        System.arraycopy(encryptedBytes, 0, combined, IV_LENGTH, encryptedBytes.length);
+
+        return Base64.getEncoder().encodeToString(combined);
+    }
     /**
-     * Decrypts a Base64-encoded ciphertext using the provided DEK (Data Encryption Key).
+     * Decrypts a Base64-encoded ciphertext [IV + Ciphertext] using the provided DEK.
      *
-     * @param encryptedText The Base64-encoded ciphertext string.
+     * @param encryptedText The Base64-encoded [IV + Ciphertext] string.
      * @param dek The symmetric secret key to use for decryption.
      * @return The decrypted plaintext string.
      * @throws Exception If the Cipher instance cannot be initialized or the decryption fails.
      */
     private String decryptWithDEK(String encryptedText, SecretKey dek) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, dek);
-        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+
+        byte[] combined = Base64.getDecoder().decode(encryptedText);
+
+        byte[] iv = new byte[IV_LENGTH];
+        System.arraycopy(combined, 0, iv, 0, IV_LENGTH);
+        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+        int ciphertextLength = combined.length - IV_LENGTH;
+        byte[] ciphertext = new byte[ciphertextLength];
+        System.arraycopy(combined, IV_LENGTH, ciphertext, 0, ciphertextLength);
+
+        Cipher cipher = Cipher.getInstance(ALGORITHM_CIPHER);
+        cipher.init(Cipher.DECRYPT_MODE, dek, ivSpec);
+        byte[] decryptedBytes = cipher.doFinal(ciphertext);
+
         return new String(decryptedBytes);
     }
 
@@ -205,7 +232,8 @@ public class VaultEncryptionService {
         String dekBase64 = (String) data.get("plaintext");
 
         byte[] dekBytes = Base64.getDecoder().decode(dekBase64);
-        return new SecretKeySpec(dekBytes, ALGORITHM);
+
+        return new SecretKeySpec(dekBytes, ALGORITHM_AES);
     }
 
     /**
