@@ -8,7 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -37,8 +37,9 @@ public class VaultEncryptionService {
     private static final String TRANSIT_DECRYPT_PATH = "/v1/transit/decrypt/user-encryption-key";
 
     private static final String ALGORITHM_AES = "AES";
-    private static final String ALGORITHM_CIPHER = "AES/CBC/PKCS5Padding";
-    private static final int IV_LENGTH = 16;
+    private static final String ALGORITHM_CIPHER = "AES/GCM/NoPadding";
+    private static final int IV_LENGTH = 12;
+    private static final int GCM_TAG_LENGTH_BITS = 128;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -116,7 +117,7 @@ public class VaultEncryptionService {
     /**
      * Encrypts the provided plaintext using the given DEK (Data Encryption Key).
      * <p>
-     * This implementation uses AES/CBC/PKCS5Padding with a random 16-byte IV.
+     * This implementation uses AES/GCM/NoPadding with a random 12-byte IV (Nonce).
      * The final output is Base64-encoded [IV + Ciphertext].
      * </p>
      *
@@ -129,10 +130,11 @@ public class VaultEncryptionService {
         byte[] iv = new byte[IV_LENGTH];
         SecureRandom random = new SecureRandom();
         random.nextBytes(iv);
-        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+        GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
 
         Cipher cipher = Cipher.getInstance(ALGORITHM_CIPHER);
-        cipher.init(Cipher.ENCRYPT_MODE, dek, ivSpec);
+        cipher.init(Cipher.ENCRYPT_MODE, dek, gcmSpec);
 
         byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
 
@@ -156,14 +158,16 @@ public class VaultEncryptionService {
 
         byte[] iv = new byte[IV_LENGTH];
         System.arraycopy(combined, 0, iv, 0, IV_LENGTH);
-        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+        GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
 
         int ciphertextLength = combined.length - IV_LENGTH;
         byte[] ciphertext = new byte[ciphertextLength];
         System.arraycopy(combined, IV_LENGTH, ciphertext, 0, ciphertextLength);
 
         Cipher cipher = Cipher.getInstance(ALGORITHM_CIPHER);
-        cipher.init(Cipher.DECRYPT_MODE, dek, ivSpec);
+        cipher.init(Cipher.DECRYPT_MODE, dek, gcmSpec);
+
         byte[] decryptedBytes = cipher.doFinal(ciphertext);
 
         return new String(decryptedBytes);
