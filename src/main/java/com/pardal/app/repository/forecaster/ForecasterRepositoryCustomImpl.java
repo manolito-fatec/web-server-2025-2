@@ -50,12 +50,14 @@ public class ForecasterRepositoryCustomImpl implements ForecasterRepositoryCusto
     private String getLastVersionDataBase()
     {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.group().max("dth").as("latestDth")
+
+                Aggregation.sort(Sort.Direction.DESC, "dth"),
+                Aggregation.limit(1)
                 );
         AggregationResults<Forecaster> results = mongoTemplate.aggregate(
                 aggregation,
                 mongoTemplate.getCollectionName(FORECASTER_COLLECTION),
-                FORECASTER_COLLECTION
+               FORECASTER_COLLECTION
                 );
 
         return results.getMappedResults().getFirst().getDth();
