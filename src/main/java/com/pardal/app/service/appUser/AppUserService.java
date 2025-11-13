@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
 import com.pardal.app.repository.logging.LogEntryRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -209,13 +210,48 @@ public class AppUserService implements UserDetailsService {
                 .referenceId(newUser.getId())
                 .build());
 
-        emailService.sendValidationEmail(vaultEncryptionService.decryptWithEnvelope(
+
+        emailService.sendPreRegistrationEmail(vaultEncryptionService.decryptWithEnvelope(
                 new EncryptedData(
                         newUser.getEncryptedEmail(),
                         dekService.findByUserId(newUser.getId()).get().getEmailDek()
-                )), newUser.getVerificationToken());
-
+                )));
+      
         return convertUserToDto(newUser);
+    }
+
+    /**
+     * Approves a user, sets their email as verified, and asynchronously sends the approval email.
+     *
+     * @param appUserId the ID of the user to be approved
+     * @author paulo arantes
+     * @return an AppUserDto representing the approved user
+     */
+    @Transactional
+    public AppUserDto approvalUser(Integer appUserId) {
+        AppUser user =  getUserAllAttributes(appUserId);
+        user.setEmailVerified(true);
+        user.setExpireDate(null);
+        emailService.sendApprovalEmail(user.getEmail());
+        return convertUserToDto(user);
+    }
+
+    /**
+     * Retrieves an AppUser from the repository by ID.
+     *
+     * @param userId the ID of the user to retrieve
+     * @return the AppUser object if found
+     * @author paulo arantes
+     * @throws NoSuchElementException if a user with the given ID does not exist
+     */
+    private AppUser getUserAllAttributes(Integer userId)
+    {
+        Optional<AppUser> user = appUserRepository.findById(userId);
+        if (user.isEmpty()) {
+            log.error("Usuario com id: "+userId+" não existe");
+            throw new NoSuchElementException();
+        }
+        return user.get();
     }
 
     /**
@@ -372,5 +408,25 @@ public class AppUserService implements UserDetailsService {
 
         userInformationDto.setAppUser(userDto);
         return userInformationDto;
+    }
+
+    /**
+     * Retrieves a list of all audit logs from the repository.
+     *
+     * If an error occurs during retrieval, it logs the error and
+     * returns an empty list to prevent application failure.
+     *
+     * @author paulo arantes
+     * @return A {@code List<LogEntry>} containing all audit logs,
+     * or an empty list if an exception occurs.
+     */
+    public List<LogEntry> getAllAuditLog()
+    {
+        try {
+            return logRepository.findAllAuditLogs();
+        }catch (Exception e) {
+            log.error("Erro ao tentar buscar a lista de logs");
+            return Collections.emptyList();
+        }
     }
 }

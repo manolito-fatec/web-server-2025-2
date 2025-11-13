@@ -7,7 +7,6 @@ import com.pardal.app.entity.dto.auth.LoginRequestDto;
 import com.pardal.app.entity.dto.auth.ResponseUserCreatedDto;
 import com.pardal.app.entity.dto.auth.SignupRequestDto;
 import com.pardal.app.exceptions.AppUserNotFoundException;
-import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.service.JwtService;
 import com.pardal.app.service.appUser.AppUserService;
 import com.pardal.app.service.vault.HashService;
@@ -17,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -153,5 +151,26 @@ public class AuthServiceImpl implements AuthService {
         {
             throw new IllegalArgumentException(fieldName + " cannot be null or blank");
         }
+    }
+
+    /**
+     * Orchestrates the user approval process by calling the application service
+     * and mapping the result to a response DTO.
+     *
+     * @param userId the ID of the user to be approved
+     * @author paulo arantes
+     * @return a ResponseUserCreatedDto containing the details of the newly approved user
+     */
+    @Override
+    public ResponseUserCreatedDto approval (Integer userId)
+    {
+        AppUserDto registeredUser =  appUserService.approvalUser(userId);
+
+        return new ResponseUserCreatedDto(
+                registeredUser.getId(),
+                registeredUser.getName(),
+                registeredUser.getEmail(),
+                registeredUser.getRole().getRlName()
+        );
     }
 }

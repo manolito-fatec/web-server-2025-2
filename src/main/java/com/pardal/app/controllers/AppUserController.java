@@ -4,17 +4,20 @@ package com.pardal.app.controllers;
 import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.entity.dto.UpdateUserRoleDto;
 import com.pardal.app.service.appUser.AppUserService;
+import com.pardal.app.service.export.CsvExportService;
 import com.pardal.app.util.RequestExceptionHandler;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ import java.util.List;
 @Slf4j
 public class AppUserController {
     private final AppUserService userService;
+    private final CsvExportService csvExportService;
 
     @Operation(summary = "Busca de Usuário por ID")
     @ApiResponses(value = {
@@ -135,6 +139,23 @@ public class AppUserController {
         return RequestExceptionHandler.handleRequest("Buscar informações relacionadas a tela de perfil do usuário", () -> {
             log.info("Buscar informação do pefil do usuário com o id: {}", userId);
             return ResponseEntity.ok(userService.getAllInformationAboutUser(userId));
+        });
+    }
+
+    @Operation(summary = "Exportar dados do audit log para csv")
+    @ApiResponses(value = {
+                    @ApiResponse(responseCode = "200", description = "Arquivo ZIP com os CSVs gerado com sucesso."),
+                    @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao gerar o arquivo.")
+    })
+    @GetMapping(value = "/audit/csv" )
+    public void getAuditLogCsv(HttpServletResponse response) throws IOException {
+        String zipFileName = "audit_log_export" + System.currentTimeMillis() + ".zip";
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + zipFileName + "\"");
+        var data = userService.getAllAuditLog();
+        RequestExceptionHandler.handleExport("Exportar Audit Log CSV", response, () -> {
+            log.info("Realizar o export para CSV do audit log");
+            csvExportService.exportAuditLogZip(data, response.getOutputStream());
         });
     }
 

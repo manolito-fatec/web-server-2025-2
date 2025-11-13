@@ -74,18 +74,14 @@ public class InsightsController {
             response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error fetching insights data: " + e.getMessage());
             return;
         }
-
         String zipFileName = "insights_export_" + System.currentTimeMillis() + ".zip";
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + zipFileName + "\"");
 
-        try {
+        RequestExceptionHandler.handleExport("Exportar Insights para CSV", response, () -> {
+            log.info("Exporta todos os insights filtrados para CSV");
             csvExportService.exportInsightsZip(data, response.getOutputStream());
-            response.flushBuffer();
-
-        } catch (Exception e) {
-            response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error generating export file.");
-        }
+        });
     }
 
     @Operation(summary = "Exporta os insights visuais para PDF",
@@ -98,23 +94,11 @@ public class InsightsController {
     @PostMapping("/export/pdf")
     public ResponseEntity<byte[]> exportInsightsToPdf(
             @RequestBody InsightsPdfRequestDto request
-    ) {
-        try {
-            byte[] pdfBytes = pdfExportService.generateInsightsPdf(request);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            String filename = "insights_report_" + System.currentTimeMillis() + ".pdf";
-            headers.setContentDispositionFormData("attachment", filename);
-            headers.setContentLength(pdfBytes.length);
-
-            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-        } catch (IOException ioException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("IO Error: " + ioException.getMessage()).getBytes(StandardCharsets.UTF_8));
-        } catch (RuntimeException runtimeException) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("Internal Server Error: " + runtimeException.getMessage()).getBytes(StandardCharsets.UTF_8));
-        }
+            ) {
+        String baseFilename = "insights_report";
+        return RequestExceptionHandler.handlePdfFileRequest("Exportar Insights para PDF", baseFilename, () -> {
+            log.info("Exporta os insights visuais para PDF");
+            return pdfExportService.generateInsightsPdf(request);
+        });
     }
 }

@@ -10,6 +10,10 @@ import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
 import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
+import com.pardal.app.entity.log.LogEntry;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @Service
+@Slf4j
 public class CsvExportService {
 
     /**
@@ -46,6 +51,7 @@ public class CsvExportService {
             beanToCsv.write(dataList);
             csvWriter.flush();
         } catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
+            log.error("Erro ao gerar CSV");
             throw new RuntimeException("CSV Generation Error", e);
         }
     }
@@ -63,10 +69,33 @@ public class CsvExportService {
             addCsvToZip(zos, "product_insights_data.csv", data.getProductInsightsData(), TicketInsight.class);
             addCsvToZip(zos, "pareto_subcategory_data.csv", data.getParetoInsightData(), TicketsBySubcategoryCountDto.class);
         } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP");
             throw new IOException("Failed to generate CSV inside ZIP file.", e);
         }
     }
 
+    /**
+    * Centralizes the ZIP file creation and CSV serialization for the audit log data.
+    * This method takes a list of {@code LogEntry} objects, compresses them into a single 
+    * ZIP file named "augit_log.csv" (contained within the ZIP), and writes the resulting 
+    * compressed data directly to the provided output stream, typically originating 
+    * from the HTTP response.
+    *
+    * @param data The {@code List<LogEntry>} containing the audit logs to be exported.
+    * @param outputStream The {@code OutputStream} linked to the HTTP response, where the 
+    * final ZIP file data will be written.
+    * @throws IOException If a low-level I/O error occurs during the writing of the ZIP stream 
+    * or if the underlying CSV generation logic (in {@code addCsvToZip}) fails.
+    */
+    public void exportAuditLogZip(List<LogEntry> data, OutputStream outputStream) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            addCsvToZip(zos, "augit_log.csv", data, LogEntry.class);
+        } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP");
+            throw new IOException("Failed to generate CSV inside ZIP file.", e);
+        }
+    }
+    
     private <T> void addCsvToZip(ZipOutputStream zos, String entryName, List<T> dataList, Class<T> type) throws IOException {
         if (dataList == null || dataList.isEmpty()) {
             return;

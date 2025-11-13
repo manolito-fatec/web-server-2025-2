@@ -1,13 +1,16 @@
 package com.pardal.app.entity.dto.insights;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
-@Data
-
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class InsightsPdfRequestDto extends InsightsFilterDto{
     private List<String> graphImagesBase64;
     private String reportTitle;
