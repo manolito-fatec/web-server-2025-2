@@ -27,15 +27,31 @@ public class AuthenticatorController {
 
     @Operation(summary = "Cadastro de Usuário")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso."),
+            @ApiResponse(responseCode = "201", description = "Usuário pré-cadastrado com sucesso."),
             @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
             @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
-            @ApiResponse(responseCode = "500", description = "Erro interno do servidor no cadastro de usuário.")
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor no pré cadastro de usuário.")
     })
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequestDto request) {
         return RequestExceptionHandler.handleRequest("Registro de usuário", () -> {
             ResponseUserCreatedDto response = authService.signup(request);
+            log.info("Usuário com email: {} foi pré-registrado com sucesso", response.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        });
+    }
+
+    @Operation(summary = "Aprovação do Cadastro do usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor no cadastro de usuário.")
+    })
+    @PatchMapping("/approval/{userId}")
+    public ResponseEntity<?> approval(@PathVariable Integer userId) {
+        return RequestExceptionHandler.handleRequest("Registro de usuário", () -> {
+            ResponseUserCreatedDto response = authService.approval(userId);
             log.info("Usuário com email: {} foi registrado com sucesso", response.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         });

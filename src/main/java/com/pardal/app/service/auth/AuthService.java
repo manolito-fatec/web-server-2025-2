@@ -9,4 +9,5 @@ public interface AuthService {
     ResponseUserCreatedDto signup(SignupRequestDto request);
     ResponseUserCreatedDto verify(String token);
     JwtAuthenticationResponseDto login(LoginRequestDto request);
+    ResponseUserCreatedDto approval(Integer userId);
 }
