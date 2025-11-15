@@ -86,7 +86,7 @@ public class PdfExportService {
             document.close();
             return bos.toByteArray();
         } catch (Exception e) {
-            log.error("Critical error during PDF generation: {}", e.getMessage());
+            log.error("Erro Crítico durante a geração de PDF: {}", e.getMessage());
             throw new RuntimeException("Failed to generate PDF document.", e);
         }
     }
@@ -111,7 +111,7 @@ public class PdfExportService {
                     document.add(graphImage);
                     document.add(new Paragraph("\n\n"));
                 } catch (Exception e) {
-                    log.error("Error adding image to PDF: {}", e.getMessage());
+                    log.error("Erro ao adicionar a imagem ao PDF: {}", e.getMessage());
                     document.add(new Paragraph(
                             "[Image failed to load: " + e.getMessage() + "]",
                             new Font(DEFAULT_FONT_FAMILY, 8, Font.ITALIC, BaseColor.RED)));
