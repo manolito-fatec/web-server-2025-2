@@ -13,6 +13,7 @@ import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
 import com.pardal.app.repository.logging.LogEntryRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -174,9 +175,42 @@ public class AppUserService implements UserDetailsService {
                 .build();
 
         AppUser newUser = userRepository.save(appUser);
-        emailService.sendValidationEmail(newUser.getEmail(), newUser.getVerificationToken());
-
+        emailService.sendPreRegistrationEmail(newUser.getEmail());
         return convertUserToDto(userRepository.save(appUser));
+    }
+
+    /**
+     * Approves a user, sets their email as verified, and asynchronously sends the approval email.
+     *
+     * @param appUserId the ID of the user to be approved
+     * @author paulo arantes
+     * @return an AppUserDto representing the approved user
+     */
+    @Transactional
+    public AppUserDto approvalUser(Integer appUserId) {
+        AppUser user =  getUserAllAttributes(appUserId);
+        user.setEmailVerified(true);
+        user.setExpireDate(null);
+        emailService.sendApprovalEmail(user.getEmail());
+        return convertUserToDto(user);
+    }
+
+    /**
+     * Retrieves an AppUser from the repository by ID.
+     *
+     * @param userId the ID of the user to retrieve
+     * @return the AppUser object if found
+     * @author paulo arantes
+     * @throws NoSuchElementException if a user with the given ID does not exist
+     */
+    private AppUser getUserAllAttributes(Integer userId)
+    {
+        Optional<AppUser> user = appUserRepository.findById(userId);
+        if (user.isEmpty()) {
+            log.error("Usuario com id: "+userId+" não existe");
+            throw new NoSuchElementException();
+        }
+        return user.get();
     }
 
     /**
