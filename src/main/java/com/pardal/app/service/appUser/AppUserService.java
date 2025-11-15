@@ -341,7 +341,11 @@ public class AppUserService implements UserDetailsService {
         }
         user.get().setExpireDate(LocalDate.now());
         updateUser(user.get());
-        return convertUserToDto(user.get());
+
+        if(dekService.deleteByUserId(id)){
+            return convertUserToDto(user.get());
+        }
+        return null;
     }
 
    /**

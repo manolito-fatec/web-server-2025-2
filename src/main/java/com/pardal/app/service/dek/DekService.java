@@ -3,12 +3,14 @@ package com.pardal.app.service.dek;
 import com.pardal.dek.entity.DataEncryptionKey;
 import com.pardal.dek.repository.DataEncryptionKeyRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DekService {
 
     private final DataEncryptionKeyRepository repository;
@@ -19,6 +21,15 @@ public class DekService {
 
     public Optional<DataEncryptionKey> findByUserId(Integer user_id) {
         return repository.findByReferenceId(user_id);
+    }
+
+    public boolean deleteByUserId(Integer user_id) {
+        repository.removeDataEncryptionKeyByReferenceId(user_id);
+        if(repository.findByReferenceId(user_id).isPresent()){
+            log.error("Error at excluding Dek from user with ID: {}", user_id);
+            throw new RuntimeException("Erro ao excluir DataEncryptionKey");
+        }
+        return true;
     }
 
     public DataEncryptionKey updateDek(DataEncryptionKey dataEncryptionKey) {

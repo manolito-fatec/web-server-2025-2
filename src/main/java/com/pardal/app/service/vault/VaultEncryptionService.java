@@ -1,5 +1,6 @@
 package com.pardal.app.service.vault;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.Map;
  * </p>
  */
 @Service
+@Slf4j
 public class VaultEncryptionService {
 
     @Value("${spring.cloud.vault.uri}")
@@ -71,6 +73,7 @@ public class VaultEncryptionService {
             return new EncryptedData(encryptedData, encryptedDEK);
 
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new RuntimeException("Erro ao criptografar dados: " + e.getMessage(), e);
         }
     }
@@ -98,6 +101,7 @@ public class VaultEncryptionService {
             return decryptWithDEK(encryptedData.getEncryptedValue(), dek);
 
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new RuntimeException("Erro ao descriptografar dados: " + e.getMessage(), e);
         }
     }

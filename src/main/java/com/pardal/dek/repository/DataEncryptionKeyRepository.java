@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface DataEncryptionKeyRepository extends JpaRepository<DataEncryptionKey, Long> {
 
     Optional<DataEncryptionKey> findByReferenceId(Integer referenceId);
+
+    void removeDataEncryptionKeyByReferenceId(Integer referenceId);
 }
