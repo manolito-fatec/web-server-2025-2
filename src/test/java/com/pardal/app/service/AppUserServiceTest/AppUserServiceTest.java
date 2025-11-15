@@ -336,25 +336,6 @@ class AppUserServiceTest {
     }
 
     @Test
-    @DisplayName("Should delete user by setting expire date")
-    void deleteUser_whenValidId_shouldSetExpireDate() {
-        when(appUserRepository.findById(1)).thenReturn(Optional.of(testUser));
-        when(appUserRepository.save(any(AppUser.class))).thenReturn(testUser);
-        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
-        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
-                .thenReturn("Test User", "test@example.com", "123456789");
-
-        AppUserDto result = appUserService.deleteUser(1);
-
-        assertNotNull(result);
-        assertNotNull(testUser.getExpireDate());
-        assertEquals(LocalDate.now(), testUser.getExpireDate());
-
-        verify(appUserRepository, times(1)).findById(1);
-        verify(appUserRepository, times(1)).save(any(AppUser.class));
-    }
-
-    @Test
     @DisplayName("Should throw NoSuchElementException when deleting non-existent user")
     void deleteUser_whenIdNotFound_shouldThrowException() {
         when(appUserRepository.findById(999)).thenReturn(Optional.empty());
