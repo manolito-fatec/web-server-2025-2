@@ -112,7 +112,7 @@ public class VaultEncryptionService {
      * @return A newly generated {@link SecretKey}.
      * @throws Exception If the AES algorithm is unavailable or key generation fails.
      */
-    private SecretKey generateDEK() throws Exception {
+    public SecretKey generateDEK() throws Exception {
         KeyGenerator keyGen = KeyGenerator.getInstance(ALGORITHM_AES);
         keyGen.init(256, new SecureRandom());
         return keyGen.generateKey();
@@ -130,7 +130,7 @@ public class VaultEncryptionService {
      * @return The Base64-encoded string: [IV + Ciphertext].
      * @throws Exception If the Cipher instance cannot be initialized or the encryption fails.
      */
-    private String encryptWithDEK(String plaintext, SecretKey dek) throws Exception {
+    public String encryptWithDEK(String plaintext, SecretKey dek) throws Exception {
         byte[] iv = new byte[IV_LENGTH];
         SecureRandom random = new SecureRandom();
         random.nextBytes(iv);
@@ -156,7 +156,7 @@ public class VaultEncryptionService {
      * @return The decrypted plaintext string.
      * @throws Exception If the Cipher instance cannot be initialized or the decryption fails.
      */
-    private String decryptWithDEK(String encryptedText, SecretKey dek) throws Exception {
+    public String decryptWithDEK(String encryptedText, SecretKey dek) throws Exception {
 
         byte[] combined = Base64.getDecoder().decode(encryptedText);
 
@@ -188,7 +188,7 @@ public class VaultEncryptionService {
      * @return The ciphertext string returned by Vault (containing the encrypted DEK).
      * @throws org.springframework.web.client.RestClientException if the Vault API call fails.
      */
-    private String encryptDEKWithVault(SecretKey dek) {
+    public String encryptDEKWithVault(SecretKey dek) {
         String dekBase64 = Base64.getEncoder().encodeToString(dek.getEncoded());
 
         HttpHeaders headers = new HttpHeaders();
@@ -219,7 +219,7 @@ public class VaultEncryptionService {
      * @return The unwrapped (plaintext) DEK as a {@link SecretKey} object.
      * @throws org.springframework.web.client.RestClientException if the Vault API call fails.
      */
-    private SecretKey decryptDEKWithVault(String encryptedDEK) {
+    public SecretKey decryptDEKWithVault(String encryptedDEK) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Vault-Token", vaultToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
