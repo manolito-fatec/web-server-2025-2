@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,6 +31,10 @@ public class DekService {
             throw new RuntimeException("Erro ao excluir DataEncryptionKey");
         }
         return true;
+    }
+
+    public List<DataEncryptionKey> findAll() {
+        return repository.findAll();
     }
 
     public DataEncryptionKey updateDek(DataEncryptionKey dataEncryptionKey) {
