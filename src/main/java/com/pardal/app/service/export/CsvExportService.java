@@ -9,9 +9,14 @@ import com.pardal.app.entity.documents.Forecaster;
 import com.pardal.app.entity.documents.TicketInsight;
 import com.pardal.app.entity.dto.insights.InsightsDataDto;
 import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
+import com.pardal.app.entity.dto.metrics.ChartDto;
+import com.pardal.app.entity.dto.metrics.TicketCountDto;
+import com.pardal.app.entity.dto.metrics.TicketsByProductsCountDto;
 import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
 import com.pardal.app.entity.log.LogEntry;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
@@ -20,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -69,8 +75,28 @@ public class CsvExportService {
             addCsvToZip(zos, "product_insights_data.csv", data.getProductInsightsData(), TicketInsight.class);
             addCsvToZip(zos, "pareto_subcategory_data.csv", data.getParetoInsightData(), TicketsBySubcategoryCountDto.class);
         } catch (RuntimeException e) {
-            log.error("Erro ao gerar CSV dentro do arquivo de ZIP");
-            throw new IOException("Failed to generate CSV inside ZIP file.", e);
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP para Insights");
+            throw new IOException("Failed to generate CSV inside ZIP file for Insights.", e);
+        }
+    }
+
+    public void exportMetricsZip(ChartDto data, OutputStream outputStream) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            addCsvToZip(zos, "tickets_by_product.csv", data.getTicketsCountGroupedByProduct(), TicketsByProductsCountDto.class);
+            addCsvToZip(zos, "tickets_over_time.csv", data.getTicketsCountOverTime(), TicketCountDto.class);
+
+            MetricsSummaryCsv summary = new MetricsSummaryCsv(
+                    data.getRecidivismRate(),
+                    data.getTicketsCount(),
+                    data.getSlaCompliancePercentualDto(),
+                    data.getTicketClosureTimeInHours()
+            );
+
+            addCsvToZip(zos, "metrics_summary.csv", List.of(summary), MetricsSummaryCsv.class);
+
+        } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP para Metricas");
+            throw new IOException("Failed to generate CSV inside ZIP file for Metrics.", e);
         }
     }
 
@@ -112,4 +138,14 @@ public class CsvExportService {
         zos.closeEntry();
     }
 
+    @Getter
+    @AllArgsConstructor
+    protected static class MetricsSummaryCsv {
+        private BigDecimal recidivismRate;
+        private Long totalTickets;
+        private Double slaCompliancePercentage;
+        private Double avgClosureTimeHours;
+    }
 }
+
+
