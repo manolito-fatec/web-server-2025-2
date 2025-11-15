@@ -80,6 +80,9 @@ services:
 
       echo 'Criando chave de criptografia user-encryption-key...';
       vault write -f transit/keys/user-encryption-key || echo 'Chave já existe';
+      
+      echo 'Configurando rotação automática da KEK (30 dias)...';
+      vault write transit/keys/user-encryption-key config rotation_period=720h;
 
       echo 'Configurando políticas de acesso...';
       vault policy write transit-policy - <<EOF
