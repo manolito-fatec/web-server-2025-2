@@ -92,6 +92,9 @@ services:
       path \"transit/decrypt/user-encryption-key\" {
         capabilities = [\"update\"]
       }
+      path \"transit/rewrap/user-encryption-key\" {
+            capabilities = [\"update\"]
+          }
       EOF
 
       echo 'Vault configurado com sucesso!';
