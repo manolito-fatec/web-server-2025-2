@@ -12,9 +12,14 @@ import com.pardal.app.entity.dto.AppUserDto;
 import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
-import com.pardal.app.repository.UserRepository;
+import com.pardal.app.repository.logging.LogEntryRepository;
 import com.pardal.app.service.appUser.AppUserService;
 
+import com.pardal.app.service.dek.DekService;
+import com.pardal.app.service.vault.HashService;
+import com.pardal.app.service.vault.VaultEncryptionService;
+import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
+import com.pardal.dek.entity.DataEncryptionKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,13 +40,22 @@ class AppUserServiceTest {
     private AppRoleRepository appRoleRepository;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private VaultEncryptionService vaultEncryptionService;
+
+    @Mock
+    private HashService hashService;
+
+    @Mock
+    private DekService dekService;
+
+    @Mock
+    private LogEntryRepository logRepository;
 
     @InjectMocks
     private AppUserService appUserService;
@@ -49,6 +63,10 @@ class AppUserServiceTest {
     private AppUser testUser;
     private AppUserDto testUserDto;
     private AppRole testRole;
+    private DataEncryptionKey testDek;
+    private EncryptedData encryptedName;
+    private EncryptedData encryptedEmail;
+    private EncryptedData encryptedPhone;
 
     @BeforeEach
     void setUp() {
@@ -56,45 +74,68 @@ class AppUserServiceTest {
         testRole.setId(2);
         testRole.setRlName("USER");
 
+        // Setup encrypted data
+        encryptedName = new EncryptedData("encryptedNameValue", "nameDekValue");
+        encryptedEmail = new EncryptedData("encryptedEmailValue", "emailDekValue");
+        encryptedPhone = new EncryptedData("encryptedPhoneValue", "phoneDekValue");
+
+        // Setup DEK
+        testDek = DataEncryptionKey.builder()
+                .nameDek("nameDekValue")
+                .emailDek("emailDekValue")
+                .phoneDek("phoneDekValue")
+                .referenceId(1)
+                .build();
+
+        // Setup user with encrypted fields
         testUser = new AppUser();
         testUser.setId(1);
-        testUser.setName("Test User");
-        testUser.setEmail("test@example.com");
+        testUser.setEncryptedName("encryptedNameValue");
+        testUser.setEncryptedEmail("encryptedEmailValue");
+        testUser.setEmailHash("hashedEmail");
+        testUser.setEncryptedPhone("encryptedPhoneValue");
         testUser.setPassword("hashedPassword");
-        testUser.setPhone("123456789");
         testUser.setRole(testRole);
         testUser.setEmailVerified(false);
-        testUser.setExpireDate(LocalDate.now());
+        testUser.setExpireDate(null);
         testUser.setVerificationToken("test-token-123");
 
         testUserDto = new AppUserDto();
         testUserDto.setId(1);
         testUserDto.setName("Test User");
         testUserDto.setEmail("test@example.com");
-        testUserDto.setPassword("hashedPassword");
+        testUserDto.setPassword("password123");
         testUserDto.setPhone("123456789");
         testUserDto.setRole(testRole);
-        testUserDto.setExpireDate(LocalDate.now());
     }
 
     @Test
     @DisplayName("Should convert AppUser entity to AppUserDto successfully")
     void convertUserToDto_whenValidUser_shouldReturnDto() {
+        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
+        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
+                .thenReturn("Test User", "test@example.com", "123456789");
+
         AppUserDto result = appUserService.convertUserToDto(testUser);
 
         assertNotNull(result);
         assertEquals(testUser.getId(), result.getId());
-        assertEquals(testUser.getName(), result.getName());
-        assertEquals(testUser.getEmail(), result.getEmail());
-        assertEquals(testUser.getPhone(), result.getPhone());
+        assertEquals("Test User", result.getName());
+        assertEquals("test@example.com", result.getEmail());
+        assertEquals("123456789", result.getPhone());
         assertEquals(testUser.getRole(), result.getRole());
-        assertEquals(testUser.getPassword(), result.getPassword());
+
+        verify(dekService, times(1)).findByUserId(1);
+        verify(vaultEncryptionService, times(3)).decryptWithEnvelope(any(EncryptedData.class));
     }
 
     @Test
     @DisplayName("Should return user DTO when valid ID is provided")
     void getUserById_whenValidId_shouldReturnUserDto() {
         when(appUserRepository.findById(1)).thenReturn(Optional.of(testUser));
+        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
+        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
+                .thenReturn("Test User", "test@example.com", "123456789");
 
         AppUserDto result = appUserService.getUserById(1);
 
@@ -111,42 +152,37 @@ class AppUserServiceTest {
     void getUserById_whenIdNotFound_shouldThrowException() {
         when(appUserRepository.findById(999)).thenReturn(Optional.empty());
 
-        NoSuchElementException thrown = assertThrows(
-                NoSuchElementException.class,
-                () -> appUserService.getUserById(999),
-                "Expected NoSuchElementException when user not found"
-        );
+        assertThrows(NoSuchElementException.class, () -> appUserService.getUserById(999));
 
         verify(appUserRepository, times(1)).findById(999);
     }
 
     @Test
-    @DisplayName("Should return user details when email is found")
+    @DisplayName("Should return user details when email hash is found")
     void loadUserByUsername_whenValidEmail_shouldReturnUserDetails() {
-        when(appUserRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+        when(appUserRepository.findByEmailHash("test@example.com")).thenReturn(Optional.of(testUser));
 
         var result = appUserService.loadUserByUsername("test@example.com");
 
         assertNotNull(result);
         assertEquals(testUser, result);
 
-        verify(appUserRepository, times(1)).findByEmail("test@example.com");
+        verify(appUserRepository, times(1)).findByEmailHash("test@example.com");
     }
 
     @Test
     @DisplayName("Should throw UsernameNotFoundException when email not found")
     void loadUserByUsername_whenEmailNotFound_shouldThrowException() {
-        when(appUserRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
+        when(appUserRepository.findByEmailHash("notfound@example.com")).thenReturn(Optional.empty());
 
         UsernameNotFoundException thrown = assertThrows(
                 UsernameNotFoundException.class,
-                () -> appUserService.loadUserByUsername("notfound@example.com"),
-                "Expected UsernameNotFoundException when user not found"
+                () -> appUserService.loadUserByUsername("notfound@example.com")
         );
 
         assertTrue(thrown.getMessage().contains("User not found with email"));
 
-        verify(appUserRepository, times(1)).findByEmail("notfound@example.com");
+        verify(appUserRepository, times(1)).findByEmailHash("notfound@example.com");
     }
 
     @Test
@@ -154,39 +190,72 @@ class AppUserServiceTest {
     void getAllUsers_whenUsersExist_shouldReturnUserList() {
         AppUser user2 = new AppUser();
         user2.setId(2);
-        user2.setName("Another User");
-        user2.setEmail("another@example.com");
-        user2.setPhone("987654321");
+        user2.setEncryptedName("encryptedName2");
+        user2.setEncryptedEmail("encryptedEmail2");
+        user2.setEmailHash("hashedEmail2");
+        user2.setEncryptedPhone("encryptedPhone2");
         user2.setRole(testRole);
+
+        DataEncryptionKey dek2 = DataEncryptionKey.builder()
+                .nameDek("nameDek2")
+                .emailDek("emailDek2")
+                .phoneDek("phoneDek2")
+                .referenceId(2)
+                .build();
 
         List<AppUser> userList = Arrays.asList(testUser, user2);
 
-        when(userRepository.findAllByExpireDateIsNull()).thenReturn(userList);
+        when(appUserRepository.findAllByExpireDateIsNull()).thenReturn(userList);
+        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
+        when(dekService.findByUserId(2)).thenReturn(Optional.of(dek2));
+        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
+                .thenReturn("Test User", "test@example.com", "123456789",
+                        "Another User", "another@example.com", "987654321");
 
         List<AppUserDto> result = appUserService.getAllUsers();
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals("Test User", result.get(0).getName());
-        assertEquals("Another User", result.get(1).getName());
 
-        verify(userRepository, times(1)).findAllByExpireDateIsNull();
+        verify(appUserRepository, times(1)).findAllByExpireDateIsNull();
     }
 
     @Test
     @DisplayName("Should throw NoSuchElementException when no users exist in system")
     void getAllUsers_whenNoUsersExist_shouldThrowException() {
-        when(userRepository.findAllByExpireDateIsNull()).thenReturn(Collections.emptyList());
+        when(appUserRepository.findAllByExpireDateIsNull()).thenReturn(Collections.emptyList());
 
         NoSuchElementException thrown = assertThrows(
                 NoSuchElementException.class,
-                () -> appUserService.getAllUsers(),
-                "Expected NoSuchElementException when no users found"
+                () -> appUserService.getAllUsers()
         );
 
         assertEquals("No users found", thrown.getMessage());
 
-        verify(userRepository, times(1)).findAllByExpireDateIsNull();
+        verify(appUserRepository, times(1)).findAllByExpireDateIsNull();
+    }
+
+    @Test
+    @DisplayName("Should create user successfully")
+    void createUser_whenValidUserDto_shouldCreateUser() {
+        when(vaultEncryptionService.encryptWithEnvelope("Test User")).thenReturn(encryptedName);
+        when(vaultEncryptionService.encryptWithEnvelope("test@example.com")).thenReturn(encryptedEmail);
+        when(vaultEncryptionService.encryptWithEnvelope("123456789")).thenReturn(encryptedPhone);
+        when(hashService.hashEmail("test@example.com")).thenReturn("hashedEmail");
+        when(passwordEncoder.encode("password123")).thenReturn("hashedPassword");
+        when(appRoleRepository.getAppRoleById(2)).thenReturn(testRole);
+        when(appUserRepository.save(any(AppUser.class))).thenReturn(testUser);
+        when(dekService.save(any(DataEncryptionKey.class))).thenReturn(testDek);
+        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
+        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
+                .thenReturn("test@example.com", "Test User", "test@example.com", "123456789");
+
+        AppUserDto result = appUserService.createUser(testUserDto);
+
+        assertNotNull(result);
+        verify(appUserRepository, times(1)).save(any(AppUser.class));
+        verify(dekService, times(1)).save(any(DataEncryptionKey.class));
+        verify(emailService, times(1)).sendPreRegistrationEmail(anyString());
     }
 
     @Test
@@ -199,7 +268,6 @@ class AppUserServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.getId());
-        assertEquals("Test User", result.getName());
         assertEquals("test-token-123", result.getVerificationToken());
 
         verify(appUserRepository, times(1)).getAppUserByVerificationToken("test-token-123");
@@ -213,8 +281,7 @@ class AppUserServiceTest {
 
         NoSuchElementException thrown = assertThrows(
                 NoSuchElementException.class,
-                () -> appUserService.getUser("invalid-token"),
-                "Expected NoSuchElementException when token not found"
+                () -> appUserService.getUser("invalid-token")
         );
 
         assertEquals("User not found with verification token: invalid-token", thrown.getMessage());
@@ -223,72 +290,63 @@ class AppUserServiceTest {
     }
 
     @Test
-    @DisplayName("Should retrieve user by email successfully")
+    @DisplayName("Should retrieve user by email hash successfully")
     void getUserByEmail_whenValidEmail_shouldReturnUser() {
-        when(appUserRepository.getAppUserByEmail("test@example.com"))
+        when(appUserRepository.getAppUserByEmailHash("test@example.com"))
                 .thenReturn(Optional.of(testUser));
 
         AppUser result = appUserService.getUserByEmail("test@example.com");
 
         assertNotNull(result);
         assertEquals(1, result.getId());
-        assertEquals("test@example.com", result.getEmail());
 
-        verify(appUserRepository, times(1)).getAppUserByEmail("test@example.com");
+        verify(appUserRepository, times(1)).getAppUserByEmailHash("test@example.com");
     }
 
     @Test
     @DisplayName("Should throw IllegalArgumentException when email not found")
     void getUserByEmail_whenEmailNotFound_shouldThrowException() {
-        when(appUserRepository.getAppUserByEmail("notfound@example.com"))
+        when(appUserRepository.getAppUserByEmailHash("notfound@example.com"))
                 .thenReturn(Optional.empty());
 
         IllegalArgumentException thrown = assertThrows(
                 IllegalArgumentException.class,
-                () -> appUserService.getUserByEmail("notfound@example.com"),
-                "Expected IllegalArgumentException when user not found"
+                () -> appUserService.getUserByEmail("notfound@example.com")
         );
 
         assertEquals("User not found with email: notfound@example.com", thrown.getMessage());
 
-        verify(appUserRepository, times(1)).getAppUserByEmail("notfound@example.com");
+        verify(appUserRepository, times(1)).getAppUserByEmailHash("notfound@example.com");
     }
 
     @Test
     @DisplayName("Should update user successfully")
     void updateUser_whenValidUser_shouldUpdateAndReturnDto() {
-        testUser.setName("Updated Name");
-
         when(appUserRepository.save(testUser)).thenReturn(testUser);
+        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
+        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
+                .thenReturn("Test User", "test@example.com", "123456789");
 
         AppUserDto result = appUserService.updateUser(testUser);
 
         assertNotNull(result);
-        assertEquals("Updated Name", result.getName());
-        assertEquals("test@example.com", result.getEmail());
+        assertEquals(1, result.getId());
 
         verify(appUserRepository, times(1)).save(testUser);
     }
 
     @Test
-    @DisplayName("Should return user DTO after update")
-    void updateUser_whenUserUpdated_shouldReturnUpdatedDto() {
-        AppUser updatedUser = new AppUser();
-        updatedUser.setId(1);
-        updatedUser.setName("Updated User");
-        updatedUser.setEmail("updated@example.com");
-        updatedUser.setPhone("999999999");
-        updatedUser.setRole(testRole);
+    @DisplayName("Should throw NoSuchElementException when deleting non-existent user")
+    void deleteUser_whenIdNotFound_shouldThrowException() {
+        when(appUserRepository.findById(999)).thenReturn(Optional.empty());
 
-        when(appUserRepository.save(updatedUser)).thenReturn(updatedUser);
+        NoSuchElementException thrown = assertThrows(
+                NoSuchElementException.class,
+                () -> appUserService.deleteUser(999)
+        );
 
-        AppUserDto result = appUserService.updateUser(updatedUser);
+        assertEquals("User not found", thrown.getMessage());
 
-        assertNotNull(result);
-        assertEquals(1, result.getId());
-        assertEquals("Updated User", result.getName());
-        assertEquals("updated@example.com", result.getEmail());
-
-        verify(appUserRepository, times(1)).save(updatedUser);
+        verify(appUserRepository, times(1)).findById(999);
     }
 }

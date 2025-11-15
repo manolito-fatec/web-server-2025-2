@@ -11,6 +11,12 @@ import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.UserRepository;
+import com.pardal.app.service.vault.HashService;
+import com.pardal.app.service.vault.VaultEncryptionService;
+import com.pardal.dek.entity.DataEncryptionKey;
+import com.pardal.app.service.dek.DekService;
+import lombok.RequiredArgsConstructor;
+import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
 import com.pardal.app.repository.logging.LogEntryRepository;
 
 import jakarta.transaction.Transactional;
@@ -38,6 +44,10 @@ public class AppUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final LogEntryRepository logRepository;
     private final EmailService emailService;
+    private final VaultEncryptionService vaultEncryptionService;
+    private final HashService hashService;
+    private final DekService dekService;
+
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -51,11 +61,21 @@ public class AppUserService implements UserDetailsService {
      * @see AppUserDto
      */
     public AppUserDto convertUserToDto(AppUser appUser) {
+        Optional<DataEncryptionKey> dataEncryptionKey = dekService.findByUserId(appUser.getId());
         return AppUserDto.builder()
                 .id(appUser.getId())
-                .name(appUser.getName())
-                .email(appUser.getEmail())
-                .phone(appUser.getPhone())
+                .name(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                        appUser.getEncryptedName(),
+                        dataEncryptionKey.get().getNameDek()
+                )))
+                .email(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                        appUser.getEncryptedEmail(),
+                        dataEncryptionKey.get().getEmailDek()
+                )))
+                .phone(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                        appUser.getEncryptedPhone(),
+                        dataEncryptionKey.get().getPhoneDek()
+                )))
                 .role(appUser.getRole())
                 .expireDate(appUser.getExpireDate())
                 .password(appUser.getPassword())
@@ -106,7 +126,7 @@ public class AppUserService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<AppUser> user = appUserRepository.findByEmail(email);
+        Optional<AppUser> user = appUserRepository.findByEmailHash(email);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
@@ -130,7 +150,7 @@ public class AppUserService implements UserDetailsService {
      * }</pre>
      */
     public List<AppUserDto> getAllUsers() {
-        List<AppUser> users = userRepository.findAllByExpireDateIsNull();
+        List<AppUser> users = appUserRepository.findAllByExpireDateIsNull();
         if (users.isEmpty()) {
             throw new NoSuchElementException("No users found");
         }
@@ -163,20 +183,41 @@ public class AppUserService implements UserDetailsService {
 
         String verificationToken = UUID.randomUUID().toString();
 
+        EncryptedData encryptedEmail = vaultEncryptionService.encryptWithEnvelope(appUserDto.getEmail());
+
+        EncryptedData encryptedPhone = vaultEncryptionService.encryptWithEnvelope(appUserDto.getPhone());
+
+        EncryptedData encryptedName = vaultEncryptionService.encryptWithEnvelope(appUserDto.getName());
+
         AppUser appUser = AppUser.builder()
-                .name(appUserDto.getName())
+                .encryptedEmail(encryptedEmail.getEncryptedValue())
+                .emailHash(hashService.hashEmail(appUserDto.getEmail()))
+                .encryptedPhone(encryptedPhone.getEncryptedValue())
+                .encryptedName(encryptedName.getEncryptedValue())
                 .password(passwordEncoder.encode(appUserDto.getPassword()))
-                .email(appUserDto.getEmail())
-                .phone(appUserDto.getPhone())
                 .expireDate(LocalDate.now())
                 .role(appRoleRepository.getAppRoleById(2))
                 .emailVerified(false)
                 .verificationToken(verificationToken)
                 .build();
 
-        AppUser newUser = userRepository.save(appUser);
-        emailService.sendPreRegistrationEmail(newUser.getEmail());
-        return convertUserToDto(userRepository.save(appUser));
+        AppUser newUser = appUserRepository.save(appUser);
+
+        dekService.save(DataEncryptionKey.builder()
+                .emailDek(encryptedEmail.getEncryptedDEK())
+                .phoneDek(encryptedPhone.getEncryptedDEK())
+                .nameDek(encryptedName.getEncryptedDEK())
+                .referenceId(newUser.getId())
+                .build());
+
+
+        emailService.sendPreRegistrationEmail(vaultEncryptionService.decryptWithEnvelope(
+                new EncryptedData(
+                        newUser.getEncryptedEmail(),
+                        dekService.findByUserId(newUser.getId()).get().getEmailDek()
+                )));
+      
+        return convertUserToDto(newUser);
     }
 
     /**
@@ -191,8 +232,14 @@ public class AppUserService implements UserDetailsService {
         AppUser user =  getUserAllAttributes(appUserId);
         user.setEmailVerified(true);
         user.setExpireDate(null);
-        emailService.sendApprovalEmail(user.getEmail());
-        return convertUserToDto(user);
+        Optional<DataEncryptionKey> deks = dekService.findByUserId(appUserId);
+        if (deks.isPresent()) {
+            emailService.sendApprovalEmail(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                    deks.get().getEmailDek(),user.getEncryptedEmail()
+            )));
+            return convertUserToDto(user);
+        }
+        return null;
     }
 
     /**
@@ -226,7 +273,11 @@ public class AppUserService implements UserDetailsService {
     public AppUserDto updateProfile(AppUserDto appUserDto) {
         AppUser existingUser = appUserRepository.findById(appUserDto.getId()).orElseThrow(() -> new NoSuchElementException("Usuário não encontrado com ID: " + appUserDto.getId()));
 
-        existingUser.setName(appUserDto.getName());
+        EncryptedData encryptedName = vaultEncryptionService.encryptWithEnvelope(appUserDto.getName());
+        DataEncryptionKey userDek = dekService.findByUserId(appUserDto.getId()).get();
+        userDek.setNameDek(encryptedName.getEncryptedDEK());
+        dekService.updateDek(userDek);
+        existingUser.setEncryptedName(encryptedName.getEncryptedValue());
 
         AppUser savedUser = appUserRepository.save(existingUser);
 
@@ -242,7 +293,7 @@ public class AppUserService implements UserDetailsService {
     }
 
     public AppUser getUserByEmail(String email) {
-        Optional<AppUser> appuser = appUserRepository.getAppUserByEmail(email);
+        Optional<AppUser> appuser = appUserRepository.getAppUserByEmailHash(email);
         if (appuser.isEmpty()) {
             throw new IllegalArgumentException("User not found with email: " + email);
         }
@@ -284,13 +335,17 @@ public class AppUserService implements UserDetailsService {
      * }</pre>
      */
     public AppUserDto deleteUser(Integer id) {
-        Optional<AppUser> user = userRepository.findById(id);
+        Optional<AppUser> user = appUserRepository.findById(id);
         if (user.isEmpty()) {
             throw new NoSuchElementException("User not found");
         }
         user.get().setExpireDate(LocalDate.now());
         updateUser(user.get());
-        return convertUserToDto(user.get());
+
+        if(dekService.deleteByUserId(id)){
+            return convertUserToDto(user.get());
+        }
+        return null;
     }
 
    /**
