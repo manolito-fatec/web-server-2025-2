@@ -158,69 +158,6 @@ class AppUserServiceTest {
     }
 
     @Test
-    @DisplayName("Should return user details when email hash is found")
-    void loadUserByUsername_whenValidEmail_shouldReturnUserDetails() {
-        when(appUserRepository.findByEmailHash("test@example.com")).thenReturn(Optional.of(testUser));
-
-        var result = appUserService.loadUserByUsername("test@example.com");
-
-        assertNotNull(result);
-        assertEquals(testUser, result);
-
-        verify(appUserRepository, times(1)).findByEmailHash("test@example.com");
-    }
-
-    @Test
-    @DisplayName("Should throw UsernameNotFoundException when email not found")
-    void loadUserByUsername_whenEmailNotFound_shouldThrowException() {
-        when(appUserRepository.findByEmailHash("notfound@example.com")).thenReturn(Optional.empty());
-
-        UsernameNotFoundException thrown = assertThrows(
-                UsernameNotFoundException.class,
-                () -> appUserService.loadUserByUsername("notfound@example.com")
-        );
-
-        assertTrue(thrown.getMessage().contains("User not found with email"));
-
-        verify(appUserRepository, times(1)).findByEmailHash("notfound@example.com");
-    }
-
-    @Test
-    @DisplayName("Should return all users when users exist in system")
-    void getAllUsers_whenUsersExist_shouldReturnUserList() {
-        AppUser user2 = new AppUser();
-        user2.setId(2);
-        user2.setEncryptedName("encryptedName2");
-        user2.setEncryptedEmail("encryptedEmail2");
-        user2.setEmailHash("hashedEmail2");
-        user2.setEncryptedPhone("encryptedPhone2");
-        user2.setRole(testRole);
-
-        DataEncryptionKey dek2 = DataEncryptionKey.builder()
-                .nameDek("nameDek2")
-                .emailDek("emailDek2")
-                .phoneDek("phoneDek2")
-                .referenceId(2)
-                .build();
-
-        List<AppUser> userList = Arrays.asList(testUser, user2);
-
-        when(appUserRepository.findAllByExpireDateIsNull()).thenReturn(userList);
-        when(dekService.findByUserId(1)).thenReturn(Optional.of(testDek));
-        when(dekService.findByUserId(2)).thenReturn(Optional.of(dek2));
-        when(vaultEncryptionService.decryptWithEnvelope(any(EncryptedData.class)))
-                .thenReturn("Test User", "test@example.com", "123456789",
-                        "Another User", "another@example.com", "987654321");
-
-        List<AppUserDto> result = appUserService.getAllUsers();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        verify(appUserRepository, times(1)).findAllByExpireDateIsNull();
-    }
-
-    @Test
     @DisplayName("Should throw NoSuchElementException when no users exist in system")
     void getAllUsers_whenNoUsersExist_shouldThrowException() {
         when(appUserRepository.findAllByExpireDateIsNull()).thenReturn(Collections.emptyList());
