@@ -2,8 +2,10 @@ package com.pardal.app.service.dek;
 
 import com.pardal.dek.entity.DataEncryptionKey;
 import com.pardal.dek.repository.DataEncryptionKeyRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +26,7 @@ public class DekService {
         return repository.findByReferenceId(user_id);
     }
 
+    @Transactional
     public boolean deleteByUserId(Integer user_id) {
         repository.removeDataEncryptionKeyByReferenceId(user_id);
         if(repository.findByReferenceId(user_id).isPresent()){
