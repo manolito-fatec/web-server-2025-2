@@ -36,8 +36,7 @@ public class AppUser implements UserDetails {
     @Column(name = "usr_encryptedEmail", nullable = false, length = 1000)
     private String encryptedEmail;
 
-    @NotNull
-    @Column(name = "usr_emailHash", nullable = false, length = 64)
+    @Column(name = "usr_emailHash", length = 64)
     private String emailHash;
 
     @Column(name = "usr_encryptedPhone", nullable = false, length = 1000)

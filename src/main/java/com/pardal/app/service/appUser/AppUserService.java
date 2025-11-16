@@ -7,6 +7,7 @@ import com.pardal.app.entity.dto.AuditDto;
 import com.pardal.app.entity.dto.UpdateUserRoleDto;
 import com.pardal.app.entity.dto.UserInformationDto;
 import com.pardal.app.entity.log.LogEntry;
+import com.pardal.app.exceptions.AppUserNotUniqueException;
 import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.repository.AppUserRepository;
@@ -126,11 +127,51 @@ public class AppUserService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<AppUser> user = appUserRepository.findByEmailHash(email);
-        if (user.isEmpty()) {
+        List<AppUser> users = appUserRepository.findAllByEmailHashAndExpireDateIsNull(email);
+        if (users.isEmpty()) {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
-        return user.get();
+        List<AppUser> validatedAppUsers = validateAppUserList(users);
+        if (validatedAppUsers.size() != 1){
+            log.error("Invalid user found with email: "+email);
+            throw new AppUserNotUniqueException("User with email: " + email + " has more than one account!");
+        }
+        return validatedAppUsers.getFirst();
+    }
+
+    /**
+     * Validates the integrity of a list of {@code AppUser} entities by checking
+     * for the existence of their corresponding Data Encryption Keys (DEKs).
+     * <p>
+     * This method ensures that for every user record found in the primary database
+     * ({@code app_users}), there is a corresponding encryption key stored in the
+     * secondary key vault database ({@code db-dek}). This check is crucial for
+     * maintaining the integrity required by the Envelope Encryption architecture,
+     * especially after operations like data migration or potential failures
+     * in key creation.
+     * </p>
+     *
+     * @param users A list of {@link AppUser} objects potentially retrieved by a unique identifier (e.g., email hash).
+     * @return A new {@code List<AppUser>} containing only the users for whom a valid
+     * Data Encryption Key exists in the key vault database.
+     * @see com.pardal.dek.entity.DataEncryptionKey
+     * @see com.pardal.app.service.dek.DekService#findByUserId(Integer)
+     *
+     * @example
+     * <pre>{@code
+     * List<AppUser> potentialUsers = appUserRepository.findAllByEmailHash(emailHash);
+     * List<AppUser> validated = validateAppUserList(potentialUsers);
+     * // Only users in 'validated' are considered viable for login or data access.
+     * }</pre>
+     */
+    public List<AppUser> validateAppUserList(List<AppUser> users) {
+        List<AppUser> validatedAppUsers = new ArrayList<>();
+        for (AppUser appUser : users) {
+            if (dekService.findByUserId(appUser.getId()).isPresent()) {
+                validatedAppUsers.add(appUser);
+            }
+        }
+        return validatedAppUsers;
     }
 
     /**
@@ -334,18 +375,20 @@ public class AppUserService implements UserDetailsService {
      * ApplicationUserDto deletedUser = userService.deleteUser(123);
      * }</pre>
      */
-    public AppUserDto deleteUser(Integer id) {
+    public boolean deleteUser(Integer id) {
         Optional<AppUser> user = appUserRepository.findById(id);
         if (user.isEmpty()) {
             throw new NoSuchElementException("User not found");
         }
         user.get().setExpireDate(LocalDate.now());
-        updateUser(user.get());
+        user.get().setEmailHash(null);
+        appUserRepository.save(user.get());
 
-        if(dekService.deleteByUserId(id)){
-            return convertUserToDto(user.get());
+        boolean dekCleaned = dekService.deleteByUserId(id);
+        if(dekCleaned){
+            return true;
         }
-        return null;
+        return false;
     }
 
    /**
