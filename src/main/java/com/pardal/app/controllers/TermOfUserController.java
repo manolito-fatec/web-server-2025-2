@@ -51,7 +51,7 @@ public class TermOfUserController
             @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
-    @GetMapping()
+    @GetMapping("/current")
     public ResponseEntity<?> getTerm() {
         return RequestExceptionHandler.handleRequest("Buscar o Atual Termo", () -> {
             log.info("Buscar informação sobre o atual Termo");
