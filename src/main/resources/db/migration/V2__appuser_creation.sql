@@ -11,9 +11,10 @@ INSERT INTO app_role (rl_id,rl_name) values (2,'Operator');
 
 CREATE TABLE app_users (
                            usr_id serial,
-                           usr_name VARCHAR(255) NOT NULL,
-                           usr_email VARCHAR(255) UNIQUE NOT NULL,
-                           usr_phone VARCHAR(15) NOT NULL,
+                           usr_encrypted_name VARCHAR(1000) NOT NULL,
+                           usr_encrypted_email VARCHAR(1000) NOT NULL,
+                           usr_email_hash VARCHAR(64),
+                           usr_encrypted_phone VARCHAR(1000) NOT NULL,
                            rl_id int NOT NULL DEFAULT 1,
                            usr_pwd VARCHAR(255) ,
                            usr_email_verified BOOLEAN DEFAULT FALSE,

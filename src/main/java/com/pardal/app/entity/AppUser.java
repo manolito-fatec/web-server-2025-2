@@ -28,20 +28,19 @@ public class AppUser implements UserDetails {
     @Column(name = "usr_id", nullable = false)
     private Integer id;
 
-    @Size(max = 255)
     @NotNull
-    @Column(name = "usr_name", nullable = false)
-    private String name;
+    @Column(name = "usr_encryptedName", nullable = false, length = 1000)
+    private String encryptedName;
 
-    @Size(max = 255)
     @NotNull
-    @Column(name = "usr_email", nullable = false, unique = true)
-    private String email;
+    @Column(name = "usr_encryptedEmail", nullable = false, length = 1000)
+    private String encryptedEmail;
 
-    @Size(max = 15)
-    @NotNull
-    @Column(name = "usr_phone", nullable = false, length = 15)
-    private String phone;
+    @Column(name = "usr_emailHash", length = 64)
+    private String emailHash;
+
+    @Column(name = "usr_encryptedPhone", nullable = false, length = 1000)
+    private String encryptedPhone;
 
     @NotNull
     @ManyToOne(fetch = FetchType.EAGER)
@@ -71,7 +70,7 @@ public class AppUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.email;
+        return this.emailHash;
     }
 
     @Override

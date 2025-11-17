@@ -11,7 +11,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "attachments")
+@Table(name = "attachments", schema = "public")
 public class Attachment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
