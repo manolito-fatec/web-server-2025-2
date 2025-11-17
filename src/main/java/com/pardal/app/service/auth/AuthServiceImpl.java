@@ -9,6 +9,8 @@ import com.pardal.app.entity.dto.auth.SignupRequestDto;
 import com.pardal.app.exceptions.AppUserNotFoundException;
 import com.pardal.app.service.JwtService;
 import com.pardal.app.service.appUser.AppUserService;
+import com.pardal.app.service.terms.TermsOfUseService;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final AppUserService appUserService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final TermsOfUseService termsOfUseService;
 
 
     /**
@@ -68,8 +71,8 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public ResponseUserCreatedDto signup(SignupRequestDto request) {
+        termsOfUseService.termNotPending(request.getTermAccepted());
         validateRequest(request);
-
         AppUserDto appUserDto = AppUserDto.builder()
                 .name(request.getName())
                 .email(request.getEmail())
@@ -78,7 +81,8 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         AppUserDto registeredUser =  appUserService.createUser(appUserDto);
-
+        request.setUserId(registeredUser.getId());
+        termsOfUseService.RegisterContract(request);
         return new ResponseUserCreatedDto(
                 registeredUser.getId(),
                 registeredUser.getName(),

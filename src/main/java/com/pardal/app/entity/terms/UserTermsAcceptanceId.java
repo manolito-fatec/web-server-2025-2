@@ -1,6 +1,5 @@
 package com.pardal.app.entity.terms;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 import lombok.AllArgsConstructor;
@@ -12,7 +11,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserTermsAcceptanceId implements Serializable 
+public class UserTermsAcceptanceId
 {
     private Integer userId; 
     private Integer terms; 
