@@ -21,4 +21,6 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     List<AppUser> findAllByEmailHash(String emailHash);
 
     List<AppUser> findAllByEmailHashAndExpireDateIsNull(String emailHash);
+
+    List<AppUser> findAllByEmailHashIsNotNullAndExpireDateIsNull();
 }
