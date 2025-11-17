@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmação de recebimento de e-mails</title>
+</head>
+<body>
+    <img th:src="@{cid:logo}" alt="Logo" style="width: 150px; height: auto;">
+
+    <h1>Confirmação de recebimento de e-mails da Plataforma Pardal</h1>
+
+    <p>Olá, <span th:text="${nomeUsuario}">Usuário</span></p>
+
+    <p>
+        Seu cadastro na <strong>Plataforma Pardal</strong> foi concluído com sucesso.
+    </p>
+
+    <p>
+        A partir de agora, você passará a receber e-mails sobre:
+    </p>
+
+    <ul>
+        <li>atualizações e novidades da plataforma;</li>
+        <li>comunicações importantes sobre sua conta;</li>
+        <li>eventuais mudanças nos Termos de Uso e na Política de Privacidade.</li>
+    </ul>
+
+    <p>
+        Você recebeu esta mensagem porque
+        <strong>aceitou a cláusula de recebimento de comunicações por e-mail</strong>
+        nos Termos de Uso.
+    </p>
+
+    <p>
+        Se, no futuro, não quiser mais receber esses e-mails, poderá gerenciar suas
+        preferências na área de configurações da sua conta.
+    </p>
+
+    <p>
+        Para acessar sua conta, utilize o link abaixo:
+    </p>
+
+    <p>
+        <a th:href="${loginUrl}">Acessar a Plataforma Pardal</a>
+    </p>
+
+    <p>
+        Atenciosamente,<br>
+        <strong>Equipe Pardal</strong>
+    </p>
+</body>
+</html>

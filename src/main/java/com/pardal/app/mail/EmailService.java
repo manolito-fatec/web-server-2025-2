@@ -21,6 +21,8 @@ public class EmailService {
 
     private final String SUBJECT_PRE_REGISTRATION = "Pré-cadastro na plataforma Pardal!";
     private final String PRE_REGISTRATION_TEMPLATE = "pre-registration";
+    private final String SUBJECT_EMAIL_TERM_OF_USE = "Aceitação do email de aviso!";
+    private final String EMAIL_TERM_OF_USE_TEMPLATE = "pre-";
     private final String SUBJECT_APPROVAL_REGISTRATION = "Seu Cadastro Pardal foi Aprovado!";
     private final String APPROVAL_TEMPLATE = "approval";
     private final String UTF_8 = "UTF-8";
@@ -106,6 +108,21 @@ public class EmailService {
             String loginUrl = baseUrl;
             Map<String, Object> variables = Map.of(
                     "loginUrl", loginUrl
+                    );
+            sendEmail(recipient, SUBJECT_APPROVAL_REGISTRATION, APPROVAL_TEMPLATE, variables);
+            log.info("Email de aprovação enviado com sucesso!");
+        } catch (MessagingException e) {
+            log.info("Erro ao enviar email de aprovação.");
+            e.getStackTrace();
+        }
+    }
+
+    @Async
+    public void sendEmailUseTerm(String recipient, String userName) {
+        try {
+            String loginUrl = baseUrl;
+            Map<String, Object> variables = Map.of(
+                    "userName", userName
                     );
             sendEmail(recipient, SUBJECT_APPROVAL_REGISTRATION, APPROVAL_TEMPLATE, variables);
             log.info("Email de aprovação enviado com sucesso!");
