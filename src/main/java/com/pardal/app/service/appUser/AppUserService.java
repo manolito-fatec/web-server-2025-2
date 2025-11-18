@@ -197,7 +197,9 @@ public class AppUserService implements UserDetailsService {
         }
         List<AppUserDto> userDtos = new ArrayList<>();
         for (AppUser user : users) {
-            userDtos.add(convertUserToDto(user));
+            if(dekService.findByUserId(user.getId()).isPresent()) {
+                userDtos.add(convertUserToDto(user));
+            }
         }
         return userDtos;
     }
@@ -257,7 +259,7 @@ public class AppUserService implements UserDetailsService {
                         newUser.getEncryptedEmail(),
                         dekService.findByUserId(newUser.getId()).get().getEmailDek()
                 )));
-      
+
         return convertUserToDto(newUser);
     }
 
@@ -391,17 +393,17 @@ public class AppUserService implements UserDetailsService {
         return false;
     }
 
-   /**
-    * Retrieves all essential information for a specific user.
-    * * This method creates a new {@code UserInformationDto}, populates its 
-    * audit information by calling {@code getAuditInformation()}, and returns the resulting DTO. 
-    * Currently, it only sets the audit information.
-    *
-    * @param id The unique identifier (ID) of the user whose information is to be retrieved.
-    * @author paulo arantes
-    * @return A {@code UserInformationDto} object containing the requested user's information, 
-    * including audit details.
-    */
+    /**
+     * Retrieves all essential information for a specific user.
+     * * This method creates a new {@code UserInformationDto}, populates its
+     * audit information by calling {@code getAuditInformation()}, and returns the resulting DTO.
+     * Currently, it only sets the audit information.
+     *
+     * @param id The unique identifier (ID) of the user whose information is to be retrieved.
+     * @author paulo arantes
+     * @return A {@code UserInformationDto} object containing the requested user's information,
+     * including audit details.
+     */
     public UserInformationDto getAllInformationAboutUser(Integer id)
     {
         UserInformationDto userInfo = new UserInformationDto();
