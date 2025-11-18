@@ -80,6 +80,7 @@ public class AppUserService implements UserDetailsService {
                 .role(appUser.getRole())
                 .expireDate(appUser.getExpireDate())
                 .password(appUser.getPassword())
+                .emailVerified(appUser.getEmailVerified())
                 .build();
     }
 
