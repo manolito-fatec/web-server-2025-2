@@ -59,20 +59,19 @@ public class TermOfUserController
         });
     }
 
-    @Operation(summary = "Atualizar termo de Uso")
+    @Operation(summary = "Atualizar os checks do termo de uso para o usuário")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Busca realizada com Successo."),
+            @ApiResponse(responseCode = "200", description = "Atualização realizada com Successo."),
             @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
-            @ApiResponse(responseCode = "404", description = "Nenhum Termo encontrado encontrado."),
             @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @PatchMapping()
     public ResponseEntity<?> updateTerm(@RequestBody RegisterAndUpdateCheckDto term ) {
-        return RequestExceptionHandler.handleRequest("Buscar o Atual Termo", () -> {
-            log.info("Buscar informação sobre o atual Termo");
+        return RequestExceptionHandler.handleRequest("Atualizar check termo de uso", () -> {
+            log.info("Atualizando os check do termo de uso");
             termsOfUseService.updateContract(term);
-            return ResponseEntity.ok("Termo atualiuzado com sucesso");
+            return ResponseEntity.ok("Termo atualizado com sucesso");
         });
     }
 

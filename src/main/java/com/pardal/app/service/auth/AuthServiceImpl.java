@@ -85,7 +85,8 @@ public class AuthServiceImpl implements AuthService {
 
         AppUserDto registeredUser =  appUserService.createUser(appUserDto);
         request.setUserId(registeredUser.getId());
-        termsOfUseService.RegisterContract(request);
+        termsOfUseService.registerContract(request);
+       
         return new ResponseUserCreatedDto(
                 registeredUser.getId(),
                 registeredUser.getName(),
@@ -93,6 +94,7 @@ public class AuthServiceImpl implements AuthService {
                 registeredUser.getRole().getRlName()
         );
     }
+
 
     @Override
     public ResponseUserCreatedDto verify(String token) {

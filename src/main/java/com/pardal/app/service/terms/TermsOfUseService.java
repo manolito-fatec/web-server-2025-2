@@ -11,6 +11,6 @@ public interface TermsOfUseService
      public TermsOfUse getCurrentlyTerm();
      public UseOfTermLoginDto contractIsActive( Integer userId);
      public void updateContract(RegisterAndUpdateCheckDto register);
-     public void RegisterContract(RegisterAndUpdateCheckDto register);
+     public void registerContract(RegisterAndUpdateCheckDto register);
      public void termNotPending(Boolean validated);
 }

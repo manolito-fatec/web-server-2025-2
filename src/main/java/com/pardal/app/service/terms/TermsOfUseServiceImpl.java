@@ -19,11 +19,16 @@ import com.pardal.app.entity.terms.TermsCheckItems;
 import com.pardal.app.entity.terms.TermsOfUse;
 import com.pardal.app.entity.terms.UserTermsAcceptance;
 import com.pardal.app.entity.terms.UserTermsAssignment;
+import com.pardal.app.mail.EmailService;
 import com.pardal.app.repository.AppUserRepository;
 import com.pardal.app.repository.terms.TermsCheckItemsRepository;
 import com.pardal.app.repository.terms.TermsOfUseRepository;
 import com.pardal.app.repository.terms.UserTermsAcceptancedRepository;
 import com.pardal.app.repository.terms.UserTermsAssignmentRepository;
+import com.pardal.app.service.dek.DekService;
+import com.pardal.app.service.vault.VaultEncryptionService;
+import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
+import com.pardal.dek.entity.DataEncryptionKey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +44,9 @@ public class TermsOfUseServiceImpl implements TermsOfUseService
     private final UserTermsAcceptancedRepository acceptancedRepository;
     private final AppUserRepository appUserRepository;
     private final TermsCheckItemsRepository termsCheckItemsRepository;
+    private final EmailService emailService;
+    private final VaultEncryptionService vaultEncryptionService;
+    private final DekService dekService;
 
     @Override
     public void createNewTerm (NewTermDto newTerm)
@@ -166,7 +174,7 @@ public class TermsOfUseServiceImpl implements TermsOfUseService
    }
 
    @Override
-   public void RegisterContract ( RegisterAndUpdateCheckDto register )
+   public void registerContract ( RegisterAndUpdateCheckDto register )
    {
        AppUser user = appUserRepository.findById(register.getUserId())
                .orElseThrow(() -> new RuntimeException("User not found with ID: " + register.getUserId()));
@@ -186,7 +194,7 @@ public class TermsOfUseServiceImpl implements TermsOfUseService
            .collect(Collectors.toMap(TermsCheckItems::getCheckId, item -> item));
 
        List<UserTermsAcceptance> contractsToSave = new ArrayList<>();
-       
+
        for (CheckInRegisterAndUpdate checkUpdate : register.getCheckList()) {
 
            TermsCheckItems realCheck = checkMap.get(checkUpdate.checkId());
@@ -194,7 +202,16 @@ public class TermsOfUseServiceImpl implements TermsOfUseService
            if (realCheck == null) {
                throw new RuntimeException("Check item not found with ID: " + checkUpdate.checkId());
            }
-           
+
+           if(checkUpdate.label().toUpperCase().contains("EMAIL") && checkUpdate.check())
+           {
+               Optional<DataEncryptionKey> deks = dekService.findByUserId(user.getId());
+               String email = vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                       user.getEncryptedEmail(), deks.get().getEmailDek()));
+               String userName = vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
+                       user.getEncryptedName(),deks.get().getNameDek()));
+               emailService.sendEmailUseTerm(email, userName);
+           }
            UserTermsAcceptance contract = new UserTermsAcceptance();
            contract.setCheck(realCheck);
            contract.setAccepted(checkUpdate.check());

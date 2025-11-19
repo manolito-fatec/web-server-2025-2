@@ -9,11 +9,7 @@
 
     <h1>Confirmação de recebimento de e-mails da Plataforma Pardal</h1>
 
-    <p>Olá, <span th:text="${nomeUsuario}">Usuário</span></p>
-
-    <p>
-        Seu cadastro na <strong>Plataforma Pardal</strong> foi concluído com sucesso.
-    </p>
+    <p>Olá, <span th:text="${user}">Usuário</span></p>
 
     <p>
         A partir de agora, você passará a receber e-mails sobre:
@@ -38,10 +34,6 @@
 
     <p>
         Para acessar sua conta, utilize o link abaixo:
-    </p>
-
-    <p>
-        <a th:href="${loginUrl}">Acessar a Plataforma Pardal</a>
     </p>
 
     <p>
