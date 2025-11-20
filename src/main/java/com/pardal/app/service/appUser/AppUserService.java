@@ -190,7 +190,7 @@ public class AppUserService implements UserDetailsService {
      * }</pre>
      */
     public List<AppUserDto> getAllUsers() {
-        List<AppUser> users = appUserRepository.findAllByEmailHashIsNotNullAndExpireDateIsNull();
+        List<AppUser> users = appUserRepository.findAllByEmailHashIsNotNull();
         if (users.isEmpty()) {
             throw new NoSuchElementException("No users found");
         }
