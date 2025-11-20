@@ -320,6 +320,7 @@ public class AppUserService implements UserDetailsService {
         userDek.setNameDek(encryptedName.getEncryptedDEK());
         dekService.updateDek(userDek);
         existingUser.setEncryptedName(encryptedName.getEncryptedValue());
+        existingUser.setPassword(passwordEncoder.encode(appUserDto.getPassword()));
 
         AppUser savedUser = appUserRepository.save(existingUser);
 
