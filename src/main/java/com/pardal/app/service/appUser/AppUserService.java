@@ -483,15 +483,7 @@ public class AppUserService implements UserDetailsService {
     {
         try {
             List<LogEntry> logs = logRepository.findTop5WithHttpMethod();
-            return logs.stream().map(log -> {
-                AuditDto dto = new AuditDto();
-                dto.setEvent(log.getTitle());
-                dto.setUser(log.getUserEmail());
-                dto.setDate(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
-                dto.setLocale(log.getRemoteIp());
-                dto.setDetails(log.getMessage());
-                return dto;
-            }).collect(Collectors.toList());
+            return getAuditDtos(logs);
 
         } catch (Exception e) {
             log.error("Error ao tentar buscar a lista de logs");
@@ -512,20 +504,24 @@ public class AppUserService implements UserDetailsService {
         try {
             List<LogEntry> logs = logRepository.findTop5ByUserEmail(userEmail);
 
-            return logs.stream().map(log -> {
-                AuditDto dto = new AuditDto();
-                dto.setEvent(log.getTitle());
-                dto.setUser(log.getUserEmail());
-                dto.setDate(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
-                dto.setLocale(log.getRemoteIp());
-                dto.setDetails(log.getMessage());
-                return dto;
-            }).collect(Collectors.toList());
+            return getAuditDtos(logs);
 
         } catch (Exception e) {
             log.error("Error ao tentar buscar a lista de logs para o usuário: {}", userEmail, e);
             return Collections.emptyList();
         }
+    }
+
+    private List<AuditDto> getAuditDtos(List<LogEntry> logs) {
+        return logs.stream().map(log -> {
+            AuditDto dto = new AuditDto();
+            dto.setEvent(log.getTitle());
+            dto.setUser(log.getUserEmail());
+            dto.setDate(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
+            dto.setLocale(log.getRemoteIp());
+            dto.setDetails(log.getMessage());
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     private UserInformationDto filterPrivateInformation (AppUserDto appUserDto, UserInformationDto userInformationDto) {
