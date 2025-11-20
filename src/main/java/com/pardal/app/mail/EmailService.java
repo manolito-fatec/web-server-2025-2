@@ -117,6 +117,14 @@ public class EmailService {
         }
     }
 
+     /**
+     * Sends a confirmation email regarding the acceptance or registration of the Terms of Use.
+     * This operation is executed asynchronously.
+     *
+     * @param recipient The email address of the user to whom the email should be sent.
+     * @param userName The name of the user to be included in the email content.
+     * @see #sendEmail(String, String, String, Map)
+     */
     @Async
     public void sendEmailUseTerm(String recipient, String userName) {
         try {
