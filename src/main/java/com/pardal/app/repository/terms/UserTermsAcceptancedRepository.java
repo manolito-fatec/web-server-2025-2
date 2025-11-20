@@ -13,6 +13,14 @@ public interface UserTermsAcceptancedRepository extends JpaRepository<UserTermsA
 {
     @Query("SELECT uta FROM UserTermsAcceptance uta " +
             "WHERE uta.userId.id = :userId AND uta.terms.termsId = :termsId")
-    List<UserTermsAcceptance> findByUserIdUserIdAndTermsTermsId(@Param("userId") Integer userId, 
+    List<UserTermsAcceptance> findByUserIdAndTermsId(@Param("userId") Integer userId, 
         @Param("termsId") Integer termsId);
+
+    @Query("SELECT uta FROM UserTermsAcceptance uta " +
+            "WHERE uta.userId.id = :userId " +
+            "AND uta.terms.termsId = (" +
+                "SELECT MAX(subUta.terms.termsId) FROM UserTermsAcceptance subUta " +
+                "WHERE subUta.userId.id = :userId" +
+            ")")
+     List<UserTermsAcceptance> findByUserIdAndMaxTermsId(@Param("userId") Integer userId);
 }

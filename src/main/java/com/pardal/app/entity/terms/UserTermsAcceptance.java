@@ -38,5 +38,6 @@ public class UserTermsAcceptance
     @JoinColumn(name = "check_id", nullable = false)
     private TermsCheckItems check;
 
-    private boolean accepted;
+    private Boolean accepted;
+    
 }

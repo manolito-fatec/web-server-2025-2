@@ -3,6 +3,7 @@ package com.pardal.app.controllers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,6 +74,38 @@ public class TermOfUserController
             termsOfUseService.updateContract(term);
             return ResponseEntity.ok("Termo atualizado com sucesso");
         });
+    }
+
+    @Operation(summary = "Busca de Termo por id do usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Termo encontrado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "404", description = "Termo não encontrado."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
+    })
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getTermByUser(@PathVariable Integer userId) {
+            return RequestExceptionHandler.handleRequest("Busca Termo pelo Id do usuário", () -> {
+                log.info("Busca de termo para o usuário com id: {}", userId);
+                return ResponseEntity.ok(termsOfUseService.getTermByUser(userId));
+            });
+    }
+
+    @Operation(summary = "Verificar se o usuário está pendente com o termo de uso")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Verificação feita com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "404", description = "Termo não encontrado."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
+    })
+    @GetMapping("/user/pending/{userId}")
+    public ResponseEntity<?> termsofUseVerification(@PathVariable Integer userId) {
+            return RequestExceptionHandler.handleRequest("Verificar se o usuário esta pendente", () -> {
+                log.info("Verificar se o usuário com o Id {}, esta pendente ", userId);
+                return ResponseEntity.ok(termsOfUseService.contractIsActive(userId));
+            });
     }
 
 }

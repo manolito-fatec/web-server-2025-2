@@ -41,14 +41,12 @@ public class AppUserService implements UserDetailsService {
 
     private final AppUserRepository appUserRepository;
     private final AppRoleRepository appRoleRepository;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final LogEntryRepository logRepository;
     private final EmailService emailService;
     private final VaultEncryptionService vaultEncryptionService;
     private final HashService hashService;
     private final DekService dekService;
-
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -259,7 +257,7 @@ public class AppUserService implements UserDetailsService {
                 new EncryptedData(
                         newUser.getEncryptedEmail(),
                         dekService.findByUserId(newUser.getId()).get().getEmailDek()
-                )));
+                        )));
 
         return convertUserToDto(newUser);
     }
@@ -279,7 +277,7 @@ public class AppUserService implements UserDetailsService {
         Optional<DataEncryptionKey> deks = dekService.findByUserId(appUserId);
         if (deks.isPresent()) {
             emailService.sendApprovalEmail(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
-                    deks.get().getEmailDek(),user.getEncryptedEmail()
+                    user.getEncryptedEmail(), deks.get().getEmailDek()
             )));
             return convertUserToDto(user);
         }

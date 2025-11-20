@@ -54,6 +54,6 @@ public class TermsOfUse
      private boolean hasRequiredItem(List<TermsCheckItems> checkList)
      {
          return checkList != null &&
-                checkList.stream().anyMatch(TermsCheckItems::isRequired);
+                checkList.stream().anyMatch(TermsCheckItems::getRequired);
      }
 }

@@ -3,6 +3,7 @@ package com.pardal.app.entity.dto.terms;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,10 +12,10 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterAndUpdateCheckDto
+@Builder
+public class TermByCustomerDto 
 {
-    private Integer userId;
-    private Integer termsId;
-    private Boolean termAccepted;
-    private List<CheckResponseDto> checkList;
+      private Integer userId;
+      private TermOfUseDto term;
+      private List<CheckResponseDto> checks;
 }

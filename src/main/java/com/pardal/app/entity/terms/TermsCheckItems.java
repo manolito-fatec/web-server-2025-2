@@ -30,7 +30,7 @@ public class TermsCheckItems
    private Integer checkId;
 
    private String label;
-   private boolean required;
+   private Boolean required;
 
    @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "terms_id", nullable = false)
