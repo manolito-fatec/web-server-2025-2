@@ -548,10 +548,13 @@ public class AppUserService implements UserDetailsService {
      * @return A {@code List<LogEntry>} containing all audit logs,
      * or an empty list if an exception occurs.
      */
-    public List<LogEntry> getAllAuditLog()
+    public List<LogEntry> getAllAuditLog(String UserEmail, String role)
     {
         try {
-            return logRepository.findAllAuditLogs();
+            if(role.toUpperCase().equals("ADMIN")) {
+                return logRepository.findAllAuditLogs();
+            }
+            return logRepository.findByUserEmail(UserEmail);
         }catch (Exception e) {
             log.error("Erro ao tentar buscar a lista de logs");
             return Collections.emptyList();
