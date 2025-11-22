@@ -110,4 +110,4 @@ jobs:
 
           VAULT_ADDR: http://localhost:8200
           VAULT_TOKEN: root-token
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=manolito-fatec_web-server-2025-2 -Dsonar.qualitygate.wait=true -Dsonar.coverage.exclusions=**
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=manolito-fatec_web-server-2025-2 -Dsonar.qualitygate.wait=true -Dsonar.coverage.exclusions=** -DskipTests

@@ -166,14 +166,14 @@ public class AppUserController {
                     @ApiResponse(responseCode = "200", description = "Arquivo ZIP com os CSVs gerado com sucesso."),
                     @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao gerar o arquivo.")
     })
-    @GetMapping(value = "/audit/csv" )
-    public void getAuditLogCsv(HttpServletResponse response) throws IOException {
+    @GetMapping(value = "/audit/csv/{userEmail}/{role}" )
+    public void getAuditLogCsv(HttpServletResponse response, @PathVariable String userEmail, @PathVariable String role ) throws IOException {
         String zipFileName = "audit_log_export" + System.currentTimeMillis() + ".zip";
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + zipFileName + "\"");
-        var data = userService.getAllAuditLog();
+        var data = userService.getAllAuditLog(userEmail, role);
         RequestExceptionHandler.handleExport("Exportar Audit Log CSV", response, () -> {
-            log.info("Realizar o export para CSV do audit log");
+            log.info("Realizar o export para CSV do audit log usuário:{}",userEmail);
             csvExportService.exportAuditLogZip(data, response.getOutputStream());
         });
     }

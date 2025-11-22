@@ -41,14 +41,12 @@ public class AppUserService implements UserDetailsService {
 
     private final AppUserRepository appUserRepository;
     private final AppRoleRepository appRoleRepository;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final LogEntryRepository logRepository;
     private final EmailService emailService;
     private final VaultEncryptionService vaultEncryptionService;
     private final HashService hashService;
     private final DekService dekService;
-
 
     /**
      * Converts an AppUser entity to its DTO representation.
@@ -80,6 +78,7 @@ public class AppUserService implements UserDetailsService {
                 .role(appUser.getRole())
                 .expireDate(appUser.getExpireDate())
                 .password(appUser.getPassword())
+                .emailVerified(appUser.getEmailVerified())
                 .build();
     }
 
@@ -214,13 +213,15 @@ public class AppUserService implements UserDetailsService {
      * }</pre>
      */
     public List<AppUserDto> getAllUsers() {
-        List<AppUser> users = appUserRepository.findAllByExpireDateIsNull();
+        List<AppUser> users = appUserRepository.findAllByEmailHashIsNotNull();
         if (users.isEmpty()) {
             throw new NoSuchElementException("No users found");
         }
         List<AppUserDto> userDtos = new ArrayList<>();
         for (AppUser user : users) {
-            userDtos.add(convertUserToDto(user));
+            if(dekService.findByUserId(user.getId()).isPresent()) {
+                userDtos.add(convertUserToDto(user));
+            }
         }
         return userDtos;
     }
@@ -279,8 +280,8 @@ public class AppUserService implements UserDetailsService {
                 new EncryptedData(
                         newUser.getEncryptedEmail(),
                         dekService.findByUserId(newUser.getId()).get().getEmailDek()
-                )));
-      
+                        )));
+
         return convertUserToDto(newUser);
     }
 
@@ -299,7 +300,7 @@ public class AppUserService implements UserDetailsService {
         Optional<DataEncryptionKey> deks = dekService.findByUserId(appUserId);
         if (deks.isPresent()) {
             emailService.sendApprovalEmail(vaultEncryptionService.decryptWithEnvelope(new EncryptedData(
-                    deks.get().getEmailDek(),user.getEncryptedEmail()
+                    user.getEncryptedEmail(), deks.get().getEmailDek()
             )));
             return convertUserToDto(user);
         }
@@ -415,17 +416,17 @@ public class AppUserService implements UserDetailsService {
         return false;
     }
 
-   /**
-    * Retrieves all essential information for a specific user.
-    * * This method creates a new {@code UserInformationDto}, populates its 
-    * audit information by calling {@code getAuditInformation()}, and returns the resulting DTO. 
-    * Currently, it only sets the audit information.
-    *
-    * @param id The unique identifier (ID) of the user whose information is to be retrieved.
-    * @author paulo arantes
-    * @return A {@code UserInformationDto} object containing the requested user's information, 
-    * including audit details.
-    */
+    /**
+     * Retrieves all essential information for a specific user.
+     * * This method creates a new {@code UserInformationDto}, populates its
+     * audit information by calling {@code getAuditInformation()}, and returns the resulting DTO.
+     * Currently, it only sets the audit information.
+     *
+     * @param id The unique identifier (ID) of the user whose information is to be retrieved.
+     * @author paulo arantes
+     * @return A {@code UserInformationDto} object containing the requested user's information,
+     * including audit details.
+     */
     public UserInformationDto getAllInformationAboutUser(Integer id)
     {
         UserInformationDto userInfo = new UserInformationDto();
@@ -547,10 +548,13 @@ public class AppUserService implements UserDetailsService {
      * @return A {@code List<LogEntry>} containing all audit logs,
      * or an empty list if an exception occurs.
      */
-    public List<LogEntry> getAllAuditLog()
+    public List<LogEntry> getAllAuditLog(String UserEmail, String role)
     {
         try {
-            return logRepository.findAllAuditLogs();
+            if(role.toUpperCase().equals("ADMIN")) {
+                return logRepository.findAllAuditLogs();
+            }
+            return logRepository.findByUserEmail(UserEmail);
         }catch (Exception e) {
             log.error("Erro ao tentar buscar a lista de logs");
             return Collections.emptyList();

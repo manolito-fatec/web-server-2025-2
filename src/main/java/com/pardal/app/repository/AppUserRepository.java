@@ -3,7 +3,6 @@ package com.pardal.app.repository;
 import com.pardal.app.entity.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +20,6 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     List<AppUser> findAllByEmailHash(String emailHash);
 
     List<AppUser> findAllByEmailHashAndExpireDateIsNull(String emailHash);
+
+    List<AppUser> findAllByEmailHashIsNotNull();
 }
