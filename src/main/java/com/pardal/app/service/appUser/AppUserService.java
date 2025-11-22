@@ -107,6 +107,29 @@ public class AppUserService implements UserDetailsService {
     }
 
     /**
+     * Retrieves a user by their email.
+     * <p>
+     * This method fetches a user from the repository and converts it to a DTO.
+     * </p>
+     *
+     * @param email the email of the user to retrieve (must not be null)
+     * @return the user DTO containing user information
+     * @throws NoSuchElementException if no user is found
+     * @example <pre>{@code
+     * // Get user with ID 123
+     * AppUserDto user = appUserService.getUserDtoByEmail(email@eae.com);
+     * }</pre>
+     * @see AppUserDto
+     */
+    public AppUserDto getUserDtoByEmail(String email) {
+        Optional<AppUser> appuser = appUserRepository.getAppUserByEmailHash(email);
+        if (appuser.isEmpty()) {
+            throw new IllegalArgumentException("User not found with email: " + email);
+        }
+        return convertUserToDto(appuser.get());
+    }
+
+    /**
      * Loads user details by email for authentication.
      * <p>
      * This method implements Spring Security's {@link UserDetailsService} interface
@@ -409,15 +432,40 @@ public class AppUserService implements UserDetailsService {
         UserInformationDto userInfo = new UserInformationDto();
         var user = getUserById(id);
 
-        if(user.getRole().getRlName().equals("Admin"))
-        {
-            userInfo.setAuditInfomation(getAuditInformation());
+        if(user.getRole().getRlName().equals("Admin")) {
+            userInfo.setAuditInfomation(getTop5AuditInformation());
+        } else {
+            userInfo.setAuditInfomation(getTop5AuditInformationByUser(user.getEmail()));
         }
 
-        Optional<AppUserDto> appUserDto = Optional.of(getUserById(id));
-        if (appUserDto.isPresent()) {
-            filterPrivateInformation(appUserDto.get(), userInfo);
+        AppUserDto appUserDto = getUserById(id);
+        filterPrivateInformation(appUserDto, userInfo);
+        return userInfo;
+    }
+
+    /**
+     * Retrieves all essential information for a specific user.
+     * * This method creates a new {@code UserInformationDto}, populates its
+     * audit information by calling {@code getAuditInformation()}, and returns the resulting DTO.
+     * Currently, it only sets the audit information.
+     *
+     * @param email The email of the user whose information is to be retrieved.
+     * @return A {@code UserInformationDto} object containing the requested user's information,
+     * including audit details.
+     */
+    public UserInformationDto getAllInformationAboutUser(String email)
+    {
+        UserInformationDto userInfo = new UserInformationDto();
+        var user = getUserDtoByEmail(email);
+
+        if(user.getRole().getRlName().equals("Admin")) {
+            userInfo.setAuditInfomation(getTop5AuditInformation());
+        } else {
+            userInfo.setAuditInfomation(getTop5AuditInformationByUser(user.getEmail()));
         }
+
+        AppUserDto appUserDto = getUserDtoByEmail(email);
+        filterPrivateInformation(appUserDto, userInfo);
         return userInfo;
     }
 
@@ -432,24 +480,49 @@ public class AppUserService implements UserDetailsService {
      * @author paulo arantes
      * Returns an empty list if no logs are found or if an exception occurs.
      */
-    private List<AuditDto> getAuditInformation()
+    private List<AuditDto> getTop5AuditInformation()
     {
         try {
             List<LogEntry> logs = logRepository.findTop5WithHttpMethod();
-            return logs.stream().map(log -> {
-                AuditDto dto = new AuditDto();
-                dto.setEvent(log.getTitle());
-                dto.setUser(log.getUserEmail());
-                dto.setDate(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
-                dto.setLocale(log.getRemoteIp());
-                dto.setDetails(log.getMessage());
-                return dto;
-            }).collect(Collectors.toList());
+            return getAuditDtos(logs);
 
         } catch (Exception e) {
             log.error("Error ao tentar buscar a lista de logs");
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Retrieves the most recent audit information (logs) for a specific user.
+     * <p>It fetches the top 5 log entries associated with the given user email
+     * that have an associated HTTP method and converts them into a list of {@code AuditDto} objects.</p>
+     *
+     * @param userEmail The email of the user whose logs are to be retrieved.
+     * @return A {@code List<AuditDto>} containing the top 5 recent audit entries for the user.
+     * Returns an empty list if no logs are found or if an exception occurs.
+     */
+    private List<AuditDto> getTop5AuditInformationByUser(String userEmail) {
+        try {
+            List<LogEntry> logs = logRepository.findTop5ByUserEmail(userEmail);
+
+            return getAuditDtos(logs);
+
+        } catch (Exception e) {
+            log.error("Error ao tentar buscar a lista de logs para o usuário: {}", userEmail, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<AuditDto> getAuditDtos(List<LogEntry> logs) {
+        return logs.stream().map(log -> {
+            AuditDto dto = new AuditDto();
+            dto.setEvent(log.getTitle());
+            dto.setUser(log.getUserEmail());
+            dto.setDate(log.getTimestamp() != null ? log.getTimestamp().toString() : null);
+            dto.setLocale(log.getRemoteIp());
+            dto.setDetails(log.getMessage());
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     private UserInformationDto filterPrivateInformation (AppUserDto appUserDto, UserInformationDto userInformationDto) {

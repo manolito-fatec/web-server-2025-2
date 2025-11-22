@@ -20,4 +20,10 @@ public interface LogEntryRepository extends MongoRepository<LogEntry, String>
             "{ $match: { 'httpMethod': { $exists: true }, 'level': { $ne: 'WARN' }}}"
         })
     List<LogEntry> findAllAuditLogs();
+
+    @Aggregation(pipeline = {
+            "{ $match: { 'userEmail': ?0, 'httpMethod': { $exists: true }, 'level': { $ne: 'WARN' }}}",
+            "{ $limit: 5 }"
+    })
+    List<LogEntry> findTop5ByUserEmail(String userEmail);
 }

@@ -8,6 +8,7 @@ import com.pardal.app.service.export.CsvExportService;
 import com.pardal.app.util.RequestExceptionHandler;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
@@ -135,10 +136,28 @@ public class AppUserController {
             @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
     })
     @GetMapping(value = "/information/{userId}" )
-    public ResponseEntity<?> getInfoAboutUserAndAudit(@PathVariable Integer userId) {
+    public ResponseEntity<?> getInfoAboutUserAndAuditById(@PathVariable Integer userId) {
         return RequestExceptionHandler.handleRequest("Buscar informações relacionadas a tela de perfil do usuário", () -> {
             log.info("Buscar informação do pefil do usuário com o id: {}", userId);
             return ResponseEntity.ok(userService.getAllInformationAboutUser(userId));
+        });
+    }
+
+    @Operation(summary = "Buscar informações relacionadas a tela de perfil do usuário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com Successo."),
+            @ApiResponse(responseCode = "400", description = "Requisição mal formulada."),
+            @ApiResponse(responseCode = "404", description = "Nenhum usuário encontrado."),
+            @ApiResponse(responseCode = "408", description = "Tempo de resposta excedido."),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor ao tentar buscar o local.")
+    })
+    @GetMapping(value = "/information" )
+    public ResponseEntity<?> getInfoAboutUserAndAuditByEmail(
+            @Parameter(description = "email do usuario")
+            String email) {
+        return RequestExceptionHandler.handleRequest("Buscar informações relacionadas a tela de perfil do usuário", () -> {
+            log.info("Buscar informação do pefil do usuário com o email: {}", email);
+            return ResponseEntity.ok(userService.getAllInformationAboutUser(email));
         });
     }
 
