@@ -14,6 +14,12 @@ import com.pardal.app.exceptions.AppUserNotFoundException;
 import com.pardal.app.repository.AppRoleRepository;
 import com.pardal.app.service.JwtService;
 import com.pardal.app.service.appUser.AppUserService;
+import com.pardal.app.service.dek.DekService;
+import com.pardal.app.service.vault.HashService;
+import com.pardal.app.service.vault.VaultEncryptionService;
+import com.pardal.app.service.vault.VaultEncryptionService.EncryptedData;
+import com.pardal.dek.entity.DataEncryptionKey;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +30,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
@@ -38,6 +46,15 @@ class AuthServiceImplTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
+    private DekService dekService;
+
+    @Mock
+    private VaultEncryptionService vaultEncryptionService;
+
+    @Mock
+    private HashService hashService;
+
+    @Mock
     private AppRoleRepository appRoleRepository;
 
     @InjectMocks
@@ -46,22 +63,53 @@ class AuthServiceImplTest {
     private LoginRequestDto loginRequest;
     private SignupRequestDto signupRequest;
     private AppUser testUser;
+    private AppUserDto testUserDto;
     private AppRole testRole;
+    private DataEncryptionKey testDek;
+    private EncryptedData encryptedName;
+    private EncryptedData encryptedEmail;
+    private EncryptedData encryptedPhone;
 
     @BeforeEach
     void setUp() {
         testRole = new AppRole();
-        testRole.setId(1);
+        testRole.setId(2);
         testRole.setRlName("USER");
 
+        // Setup encrypted data
+        encryptedName = new EncryptedData("encryptedNameValue", "nameDekValue");
+        encryptedEmail = new EncryptedData("encryptedEmailValue", "emailDekValue");
+        encryptedPhone = new EncryptedData("encryptedPhoneValue", "phoneDekValue");
+
+        // Setup DEK
+        testDek = DataEncryptionKey.builder()
+                .nameDek("nameDekValue")
+                .emailDek("emailDekValue")
+                .phoneDek("phoneDekValue")
+                .referenceId(1)
+                .build();
+
+        // Setup user entity with encrypted fields
         testUser = new AppUser();
         testUser.setId(1);
-        testUser.setName("Test User");
-        testUser.setEmail("test@example.com");
+        testUser.setEncryptedName("encryptedNameValue");
+        testUser.setEncryptedEmail("encryptedEmailValue");
+        testUser.setEmailHash("hashedEmailValue");
+        testUser.setEncryptedPhone("encryptedPhoneValue");
         testUser.setPassword("hashedPassword");
-        testUser.setPhone("123456789");
         testUser.setRole(testRole);
         testUser.setEmailVerified(false);
+        testUser.setVerificationToken("test-token-123");
+        testUser.setExpireDate(null);
+
+        // Setup user DTO (decrypted data)
+        testUserDto = new AppUserDto();
+        testUserDto.setId(1);
+        testUserDto.setName("Test User");
+        testUserDto.setEmail("test@example.com");
+        testUserDto.setPhone("123456789");
+        testUserDto.setRole(testRole);
+        testUserDto.setPassword("password123");
 
         loginRequest = new LoginRequestDto();
         loginRequest.setEmail("test@example.com");
@@ -79,9 +127,10 @@ class AuthServiceImplTest {
     void login_whenValidCredentials_shouldReturnJwtToken() {
         String expectedToken = "jwt.token.here";
 
+        when(hashService.hashEmail("test@example.com")).thenReturn("hashedEmailValue");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(null);
-        when(appUserService.getUserByEmail("test@example.com")).thenReturn(testUser);
+        when(appUserService.getUserByEmail("hashedEmailValue")).thenReturn(testUser);
         when(jwtService.generateToken(testUser)).thenReturn(expectedToken);
 
         JwtAuthenticationResponseDto result = authService.login(loginRequest);
@@ -90,13 +139,14 @@ class AuthServiceImplTest {
         assertEquals(expectedToken, result.getToken());
 
         verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(appUserService, times(1)).getUserByEmail("test@example.com");
+        verify(appUserService, times(1)).getUserByEmail("hashedEmailValue");
         verify(jwtService, times(1)).generateToken(testUser);
     }
 
     @Test
     @DisplayName("Should throw IllegalArgumentException when authentication fails")
     void login_whenAuthenticationFails_shouldThrowException() {
+        when(hashService.hashEmail("test@example.com")).thenReturn("hashedEmailValue");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new AuthenticationException("Invalid credentials") {});
 
@@ -113,14 +163,7 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("Should successfully create user when valid signup request is provided")
     void signup_whenValidRequest_shouldCreateUser() {
-        AppUserDto createdUserDto = new AppUserDto();
-        createdUserDto.setId(1);
-        createdUserDto.setName("Test User");
-        createdUserDto.setEmail("test@example.com");
-        createdUserDto.setPhone("123456789");
-        createdUserDto.setRole(testRole);
-
-        when(appUserService.createUser(any(AppUserDto.class))).thenReturn(createdUserDto);
+        when(appUserService.createUser(any(AppUserDto.class))).thenReturn(testUserDto);
 
         ResponseUserCreatedDto result = authService.signup(signupRequest);
 
@@ -210,21 +253,35 @@ class AuthServiceImplTest {
     @DisplayName("Should verify user and set emailVerified to true")
     void verify_whenValidToken_shouldVerifyUser() {
         String token = "valid.token";
+
+        // User não verificado
         AppUser unverifiedUser = new AppUser();
         unverifiedUser.setId(1);
-        unverifiedUser.setName("Test User");
-        unverifiedUser.setEmail("test@example.com");
+        unverifiedUser.setEncryptedName("encryptedNameValue");
+        unverifiedUser.setEncryptedEmail("encryptedEmailValue");
+        unverifiedUser.setEmailHash("hashedEmailValue");
+        unverifiedUser.setEncryptedPhone("encryptedPhoneValue");
         unverifiedUser.setRole(testRole);
         unverifiedUser.setEmailVerified(false);
+        unverifiedUser.setVerificationToken(token);
+
+        // DTO retornado após update
+        AppUserDto verifiedUserDto = new AppUserDto();
+        verifiedUserDto.setId(1);
+        verifiedUserDto.setName("Test User");
+        verifiedUserDto.setEmail("test@example.com");
+        verifiedUserDto.setPhone("123456789");
+        verifiedUserDto.setRole(testRole);
 
         when(appUserService.getUser(token)).thenReturn(unverifiedUser);
+        when(appUserService.updateUser(any(AppUser.class))).thenReturn(verifiedUserDto);
 
         ResponseUserCreatedDto result = authService.verify(token);
 
         assertNotNull(result);
         assertEquals(1, result.getId());
-        assertEquals("Test User", result.getName());
-        assertEquals("test@example.com", result.getEmail());
+        assertEquals("encryptedNameValue", result.getName());
+        assertEquals("encryptedEmailValue", result.getEmail());
         assertTrue(unverifiedUser.getEmailVerified());
         assertNull(unverifiedUser.getExpireDate());
 

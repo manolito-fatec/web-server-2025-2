@@ -1,0 +1,151 @@
+package com.pardal.app.service.export;
+
+import com.opencsv.CSVWriter;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
+import com.pardal.app.entity.documents.Forecaster;
+import com.pardal.app.entity.documents.TicketInsight;
+import com.pardal.app.entity.dto.insights.InsightsDataDto;
+import com.pardal.app.entity.dto.insights.SlaPredictionResponseDto;
+import com.pardal.app.entity.dto.metrics.ChartDto;
+import com.pardal.app.entity.dto.metrics.TicketCountDto;
+import com.pardal.app.entity.dto.metrics.TicketsByProductsCountDto;
+import com.pardal.app.entity.dto.metrics.TicketsBySubcategoryCountDto;
+import com.pardal.app.entity.log.LogEntry;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+@Service
+@Slf4j
+public class CsvExportService {
+
+    /**
+     * Writes a list of objects to a PrintWriter in CSV format.
+     * The CSV headers are derived from the field names of the object class.
+     *
+     * @param <T> The type of objects in the list.
+     * @param writer The PrintWriter to write the CSV data to.
+     * @param dataList The list of data objects to export.
+     * @param type The Class object of the data type (e.g. TicketInsight.class).
+     */
+    public <T> void writeCsv(PrintWriter writer, List<T> dataList, Class<T> type) throws IOException {
+
+        CSVWriter csvWriter = new CSVWriter(writer,
+                CSVWriter.DEFAULT_SEPARATOR,
+                CSVWriter.DEFAULT_QUOTE_CHARACTER,
+                CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                CSVWriter.DEFAULT_LINE_END);
+
+        try {
+            StatefulBeanToCsv<T> beanToCsv = new StatefulBeanToCsvBuilder<T>(csvWriter).build();
+            beanToCsv.write(dataList);
+            csvWriter.flush();
+        } catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
+            log.error("Erro ao gerar CSV");
+            throw new RuntimeException("CSV Generation Error", e);
+        }
+    }
+
+    /**
+     * Centralizes the ZIP creation and CSV writing for all insights data.
+     * @param data The InsightsDataDto containing all lists.
+     * @param outputStream The output stream from the HttpServletResponse.
+     * @throws IOException if an error occurs during ZIP or CSV writing.
+     */
+    public void exportInsightsZip(InsightsDataDto data, OutputStream outputStream) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            addCsvToZip(zos, "sla_prediction_data.csv", data.getSlaInsightData(), SlaPredictionResponseDto.class);
+            addCsvToZip(zos, "seasonality_forecaster_data.csv", data.getSeasonalityInsightData(), Forecaster.class);
+            addCsvToZip(zos, "product_insights_data.csv", data.getProductInsightsData(), TicketInsight.class);
+            addCsvToZip(zos, "pareto_subcategory_data.csv", data.getParetoInsightData(), TicketsBySubcategoryCountDto.class);
+        } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP para Insights");
+            throw new IOException("Failed to generate CSV inside ZIP file for Insights.", e);
+        }
+    }
+
+    public void exportMetricsZip(ChartDto data, OutputStream outputStream) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            addCsvToZip(zos, "tickets_by_product.csv", data.getTicketsCountGroupedByProduct(), TicketsByProductsCountDto.class);
+            addCsvToZip(zos, "tickets_over_time.csv", data.getTicketsCountOverTime(), TicketCountDto.class);
+
+            MetricsSummaryCsv summary = new MetricsSummaryCsv(
+                    data.getRecidivismRate(),
+                    data.getTicketsCount(),
+                    data.getSlaCompliancePercentualDto(),
+                    data.getTicketClosureTimeInHours()
+            );
+
+            addCsvToZip(zos, "metrics_summary.csv", List.of(summary), MetricsSummaryCsv.class);
+
+        } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP para Metricas");
+            throw new IOException("Failed to generate CSV inside ZIP file for Metrics.", e);
+        }
+    }
+
+    /**
+    * Centralizes the ZIP file creation and CSV serialization for the audit log data.
+    * This method takes a list of {@code LogEntry} objects, compresses them into a single 
+    * ZIP file named "augit_log.csv" (contained within the ZIP), and writes the resulting 
+    * compressed data directly to the provided output stream, typically originating 
+    * from the HTTP response.
+    *
+    * @param data The {@code List<LogEntry>} containing the audit logs to be exported.
+    * @param outputStream The {@code OutputStream} linked to the HTTP response, where the 
+    * final ZIP file data will be written.
+    * @throws IOException If a low-level I/O error occurs during the writing of the ZIP stream 
+    * or if the underlying CSV generation logic (in {@code addCsvToZip}) fails.
+    */
+    public void exportAuditLogZip(List<LogEntry> data, OutputStream outputStream) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            addCsvToZip(zos, "augit_log.csv", data, LogEntry.class);
+        } catch (RuntimeException e) {
+            log.error("Erro ao gerar CSV dentro do arquivo de ZIP");
+            throw new IOException("Failed to generate CSV inside ZIP file.", e);
+        }
+    }
+    
+    private <T> void addCsvToZip(ZipOutputStream zos, String entryName, List<T> dataList, Class<T> type) throws IOException {
+        if (dataList == null || dataList.isEmpty()) {
+            return;
+        }
+
+        ZipEntry entry = new ZipEntry(entryName);
+        zos.putNextEntry(entry);
+
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(zos, StandardCharsets.UTF_8));
+
+        this.writeCsv(writer, dataList, type);
+        writer.flush();
+
+        zos.closeEntry();
+    }
+
+    @Getter
+    @AllArgsConstructor
+    protected static class MetricsSummaryCsv {
+        private BigDecimal recidivismRate;
+        private Long totalTickets;
+        private Double slaCompliancePercentage;
+        private Double avgClosureTimeHours;
+    }
+}
+
+

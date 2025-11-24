@@ -20,5 +20,6 @@ public class AppUserDto {
     private AppRole role;
     private LocalDate expireDate;
     private String password;
+    private boolean emailVerified;
 
 }

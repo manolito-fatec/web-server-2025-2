@@ -4,6 +4,7 @@ import com.pardal.app.entity.Product;
 import com.pardal.app.entity.SlaPlan;
 import com.pardal.app.entity.TicketStatusHistory;
 import com.pardal.app.entity.Tickets;
+import com.pardal.app.entity.dto.insights.InsightsFilterDto;
 
 import jakarta.persistence.criteria.*;
 
@@ -45,6 +46,11 @@ public class TicketsSpecification {
         return filterOptionalParams(pFilters);
     }
 
+    public static Specification<Tickets> withDateRangeAndFilterList(InsightsFilterDto pFilters) {
+
+        return filterOptionalListParams(pFilters.getCustomerIds(), pFilters.getProductIds());
+    }
+    
     private static Specification<Tickets> filterOptionalParams(TicketsFilters pFilters) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -65,6 +71,23 @@ public class TicketsSpecification {
             if (pFilters.getToDate() != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(
                         root.get(CREATED_AT), pFilters.getToDate().toInstant(ZoneOffset.UTC)));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private static Specification<Tickets> filterOptionalListParams(List<Integer> customerIdList, List<Integer> productIdList) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (productIdList != null && !productIdList.isEmpty()) {
+                predicates.add(root.get(PRODUCT).get(ID).in(productIdList));
+            }
+
+            if (customerIdList != null && !customerIdList.isEmpty()) {
+
+                predicates.add(root.get(COMPANY).get(ID).in(customerIdList));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
