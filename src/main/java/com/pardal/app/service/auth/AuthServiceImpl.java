@@ -95,7 +95,6 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-
     @Override
     public ResponseUserCreatedDto verify(String token) {
         AppUser appUser = appUserService.getUser(token);
